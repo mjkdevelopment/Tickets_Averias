@@ -30,7 +30,7 @@ class UsuarioAdmin(UserAdmin):
 
 @admin.register(DispositivoNotificacion)
 class DispositivoNotificacionAdmin(admin.ModelAdmin):
-    list_display = ("usuario", "plataforma", "token", "fecha_registro", "activo")
-    list_filter = ("plataforma", "activo")
-    search_fields = ("usuario__username", "usuario__first_name", "usuario__last_name", "token")
+    list_display = ("usuario", "fcm_token", "activo", "fecha_registro", "activo")
+    list_filter = ("activo",)
+    search_fields = ("usuario__username", "usuario__first_name", "usuario__last_name", "fcm_token")
 
