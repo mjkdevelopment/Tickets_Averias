@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<h4 class="mb-3">{{ titulo }}</h4>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="row">
+        {% for field in form %}
+            <div class="mb-3 col-md-6">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{% url 'usuarios_lista' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

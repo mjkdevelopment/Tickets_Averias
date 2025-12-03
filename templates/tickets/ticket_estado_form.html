@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Actualizar ticket {{ ticket.numero_ticket }}{% endblock %}
+
+{% block content %}
+<h2>Actualizar ticket {{ ticket.numero_ticket }}</h2>
+<hr>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label class="form-label">{{ form.estado.label }}</label>
+        {{ form.estado }}
+        {{ form.estado.errors }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">{{ form.solucion.label }}</label>
+        {{ form.solucion }}
+        {{ form.solucion.errors }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">{{ form.asignado_a.label }}</label>
+        {{ form.asignado_a }}
+        {{ form.asignado_a.errors }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">{{ form.foto_reparacion.label }}</label>
+        {{ form.foto_reparacion }}
+        {{ form.foto_reparacion.errors }}
+        {% if ticket.foto_reparacion %}
+            <div class="mt-2">
+                <strong>Foto actual:</strong><br>
+                <img src="{{ ticket.foto_reparacion.url }}" class="img-fluid img-thumbnail" style="max-width: 300px;">
+            </div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a href="{% url 'ticket_detalle' ticket.pk %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

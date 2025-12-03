@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Nuevo ticket{% endblock %}
+
+{% block content %}
+<h2>Nuevo ticket</h2>
+<hr>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="{{ form.local.id_for_label }}" class="form-label">Local *</label>
+        {{ form.local }}
+        {{ form.local.errors }}
+        <small class="form-text text-muted">
+            Selecciona el local donde ocurrió la avería.
+        </small>
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.categoria.id_for_label }}" class="form-label">Categoría *</label>
+        {{ form.categoria }}
+        {{ form.categoria.errors }}
+        <small class="form-text text-muted">
+            Tipo de avería (PC, Internet, Eléctrica, etc.).
+        </small>
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+            Comentario / descripción de la avería *
+        </label>
+        {{ form.descripcion }}
+        {{ form.descripcion.errors }}
+        <small class="form-text text-muted">
+            Ejemplo: “teclado no escribe”, “no tiene luz eléctrica”,
+            “tiene energía pero el letrero no enciende”, etc.
+        </small>
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.prioridad.id_for_label }}" class="form-label">Prioridad *</label>
+        {{ form.prioridad }}
+        {{ form.prioridad.errors }}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.asignado_a.id_for_label }}" class="form-label">
+            Técnico asignado (opcional)
+        </label>
+        {{ form.asignado_a }}
+        {{ form.asignado_a.errors }}
+        <small class="form-text text-muted">
+            Si lo dejas vacío, un administrador lo puede asignar luego.
+        </small>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'tickets_lista' %}" class="btn btn-secondary">
+            Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+            Crear ticket
+        </button>
+    </div>
+</form>
+{% endblock %}
+

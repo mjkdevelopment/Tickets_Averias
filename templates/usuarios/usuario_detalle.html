@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Detalle usuario{% endblock %}
+
+{% block content %}
+<h4>Usuario: {{ usuario.username }}</h4>
+<hr>
+
+<p><strong>Nombre:</strong> {{ usuario.first_name }} {{ usuario.last_name }}</p>
+<p><strong>Email:</strong> {{ usuario.email }}</p>
+<p><strong>Rol:</strong> {{ usuario.rol }}</p>
+<p><strong>Activo:</strong> {{ usuario.is_active|yesno:"Sí,No" }}</p>
+
+<a href="{% url 'usuario_editar' usuario.pk %}" class="btn btn-primary btn-sm">Editar</a>
+<a href="{% url 'usuarios_lista' %}" class="btn btn-secondary btn-sm">Volver</a>
+{% endblock %}

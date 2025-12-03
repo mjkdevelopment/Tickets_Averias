@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket {{ ticket.numero_ticket }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">
+    Ticket {{ ticket.numero_ticket }}
+</h2>
+
+<div class="mb-3">
+    {% if user.es_tecnico and not ticket.asignado_a %}
+        <form method="post" action="{% url 'ticket_tomar' ticket.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-primary">
+                Tomar este ticket
+            </button>
+        </form>
+    {% endif %}
+</div>
+
+<div class="row">
+    <!-- Columna izquierda: detalles + estado -->
+    <div class="col-md-6 mb-4">
+
+        <!-- Detalles del ticket -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Detalles del ticket
+            </div>
+            <div class="card-body">
+                <p><strong>Local:</strong> {{ ticket.local }}</p>
+                <p><strong>Categoría:</strong> {{ ticket.categoria }}</p>
+                <p><strong>Prioridad:</strong> {{ ticket.get_prioridad_display }}</p>
+                <p><strong>Estado:</strong> {{ ticket.get_estado_display }}</p>
+                <p><strong>Creado por:</strong> {{ ticket.creado_por }}</p>
+                <p><strong>Asignado a:</strong>
+                    {% if ticket.asignado_a %}
+                        {{ ticket.asignado_a }}
+                    {% else %}
+                        <span class="text-muted">Sin asignar</span>
+                    {% endif %}
+                </p>
+                <p><strong>Fecha de creación:</strong> {{ ticket.fecha_creacion }}</p>
+
+                <hr>
+                <p><strong>Descripción / comentario inicial:</strong></p>
+                <p>{{ ticket.descripcion }}</p>
+            </div>
+        </div>
+
+        <!-- Formulario de cambio de estado -->
+        {% if puede_actualizar_estado %}
+        <div class="card">
+            <div class="card-header">
+                Actualizar estado
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        {{ estado_form.estado }}
+                        {{ estado_form.estado.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Solución (opcional)</label>
+                        {{ estado_form.solucion }}
+                        {{ estado_form.solucion.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Foto reparación (opcional)</label>
+                        {{ estado_form.foto_reparacion }}
+                        {{ estado_form.foto_reparacion.errors }}
+                    </div>
+
+                    {% if user.es_admin %}
+                        <div class="mb-3">
+                            <label class="form-label">Técnico asignado</label>
+                            {{ estado_form.asignado_a }}
+                            {{ estado_form.asignado_a.errors }}
+                            <small class="form-text text-muted">
+                                Solo el administrador puede cambiar el técnico asignado.
+                            </small>
+                        </div>
+                    {% endif %}
+
+                    <button type="submit"
+                            name="actualizar_estado"
+                            class="btn btn-primary btn-sm">
+                        Guardar cambios
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Columna derecha: comentarios -->
+    <div class="col-md-6 mb-4">
+
+        <!-- Lista de comentarios -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Comentarios
+            </div>
+            <div class="card-body">
+                {% if comentarios %}
+                    <ul class="list-group list-group-flush">
+                        {% for c in comentarios %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ c.usuario }}</strong>
+                                    <small class="text-muted">{{ c.fecha_creacion }}</small>
+                                </div>
+                                <div class="mt-1">
+                                    {{ c }}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Aún no hay comentarios en este ticket.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Formulario para nuevo comentario -->
+        <div class="card">
+            <div class="card-header">
+                Agregar comentario
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ comentario_form.as_p }}
+                    <button type="submit"
+                            name="nuevo_comentario"
+                            class="btn btn-outline-secondary btn-sm">
+                        Agregar comentario
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
