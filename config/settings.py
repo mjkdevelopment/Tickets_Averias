@@ -153,6 +153,10 @@ FIREBASE_CREDENTIALS_FILE = config(
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 
+FIREBASE_PROJECT_ID = "mjk-tickets"  # 👈 el ID de tu proyecto (lo ves en Firebase)
+FIREBASE_CREDENTIALS_FILE = BASE_DIR / "config" / "firebase_admin_key.json"
+
+
 # 🔐 Sesiones basadas en cookies firmadas (para evitar usar la tabla django_session)
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
