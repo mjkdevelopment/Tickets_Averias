@@ -8,6 +8,8 @@ from .utils import enviar_whatsapp_ticket_asignado
 from apps.tickets.models import Ticket, ComentarioTicket
 from apps.tickets.forms import TicketForm, ComentarioTicketForm, TicketEstadoForm
 from .fcm import enviar_notificacion_nuevo_ticket
+from apps.locales.models import Local
+
 
 
 @login_required
@@ -132,8 +134,16 @@ def ticket_crear(request):
             return redirect('ticket_detalle', pk=ticket.pk)
     else:
         form = TicketForm(usuario=usuario)
+    locales_sugeridos = Local.objects.filter(activo=True).order_by('nombre')\
+        .values_list('nombre', flat=True)
+        
+    contexto = {
+        'form': form,
+        'locales_sugeridos': locales_sugeridos,   
+    }         
+        
 
-    return render(request, 'tickets/ticket_form.html', {'form': form})
+    return render(request, 'tickets/ticket_form.html', contexto)
 
 
 @login_required

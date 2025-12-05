@@ -21,6 +21,8 @@ class TicketForm(forms.ModelForm):
             attrs={
                 "class": "form-control",
                 "placeholder": "Escribe el nombre del local (ej. gd01)...",
+                # 👇 el id del datalist que usaremos en el template
+                "list": "locales-datalist",
             }
         ),
     )

@@ -8,12 +8,22 @@
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
+    <!-- LOCAL con autocompletado -->
     <div class="mb-3">
         <label for="{{ form.local.id_for_label }}" class="form-label">Local *</label>
         {{ form.local }}
         {{ form.local.errors }}
+
+        <!-- 🔽 Sugerencias de locales existentes -->
+        <datalist id="locales-datalist">
+            {% for nombre in locales_sugeridos %}
+                <option value="{{ nombre }}"></option>
+            {% endfor %}
+        </datalist>
+
         <small class="form-text text-muted">
-            Selecciona el local donde ocurrió la avería.
+            Escribe el código/nombre del local. Si ya existe, podrás seleccionarlo;
+            si no existe, se creará automáticamente.
         </small>
     </div>
 
@@ -65,4 +75,3 @@
     </div>
 </form>
 {% endblock %}
-
