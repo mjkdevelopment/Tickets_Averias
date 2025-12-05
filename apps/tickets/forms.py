@@ -10,7 +10,7 @@ class TicketForm(forms.ModelForm):
     Formulario para crear/editar tickets.
     NO pedimos título: se genera automático en la vista.
 
-    El campo `local` se maneja como texto libre:
+    El campo `local` se muestra como texto libre:
     - Si el nombre existe en Local, se reutiliza.
     - Si no existe, se crea automáticamente.
     """
@@ -42,7 +42,7 @@ class TicketForm(forms.ModelForm):
         self.fields["descripcion"].label = "Comentario / descripción de la avería"
 
         # Estilos Bootstrap
-        # `local` es un input de texto (ya tiene form-control arriba)
+        # `local` ya tiene form-control arriba
         self.fields["categoria"].widget.attrs.update({"class": "form-select"})
         self.fields["prioridad"].widget.attrs.update({"class": "form-select"})
         self.fields["descripcion"].widget.attrs.update({"class": "form-control"})
@@ -63,10 +63,20 @@ class TicketForm(forms.ModelForm):
             self.fields["asignado_a"].required = False
 
     def clean_local(self):
+        """
+        Convierte el texto del campo `local` en un objeto Local.
+        Si no existe, lo crea y devuelve el objeto (no el string).
+        """
         nombre = (self.cleaned_data.get("local") or "").strip()
         if not nombre:
             raise forms.ValidationError("Debes escribir el nombre del local.")
-        return nombre
+
+        # Buscar local por nombre, sin importar mayúsculas/minúsculas
+        local = Local.objects.filter(nombre__iexact=nombre).first()
+        if not local:
+            local = Local.objects.create(nombre=nombre)
+
+        return local  # 👈 devolvemos el Local, no el string
 
     def clean_asignado_a(self):
         tecnico = self.cleaned_data.get("asignado_a")
@@ -84,28 +94,6 @@ class TicketForm(forms.ModelForm):
                 )
 
         return tecnico
-
-    def save(self, commit=True):
-        """
-        Convierte el texto del campo `local` en un objeto Local.
-        Si no existe, lo crea.
-        """
-        ticket = super().save(commit=False)
-
-        nombre_local = self.cleaned_data["local"].strip()
-
-        # Buscar local por nombre, sin importar mayúsculas/minúsculas
-        local = Local.objects.filter(nombre__iexact=nombre_local).first()
-        if not local:
-            local = Local.objects.create(nombre=nombre_local)
-
-        ticket.local = local
-
-        if commit:
-            ticket.save()
-            self.save_m2m()
-
-        return ticket
 
 
 class TicketEstadoForm(forms.ModelForm):
