@@ -20,7 +20,7 @@ class TicketForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Escribe el nombre del local...",
+                "placeholder": "Escribe el nombre del local (ej. gd01)...",
             }
         ),
     )
@@ -65,18 +65,37 @@ class TicketForm(forms.ModelForm):
     def clean_local(self):
         """
         Convierte el texto del campo `local` en un objeto Local.
-        Si no existe, lo crea y devuelve el objeto (no el string).
+        Si no existe, lo crea usando ese mismo texto como `codigo` y `nombre`.
         """
-        nombre = (self.cleaned_data.get("local") or "").strip()
-        if not nombre:
-            raise forms.ValidationError("Debes escribir el nombre del local.")
+        texto = (self.cleaned_data.get("local") or "").strip()
+        if not texto:
+            raise forms.ValidationError("Debes escribir el nombre/código del local.")
 
-        # Buscar local por nombre, sin importar mayúsculas/minúsculas
-        local = Local.objects.filter(nombre__iexact=nombre).first()
+        # 1) Buscar por nombre o por código, ignorando mayúsculas/minúsculas
+        local = Local.objects.filter(nombre__iexact=texto).first()
         if not local:
-            local = Local.objects.create(nombre=nombre)
+            local = Local.objects.filter(codigo__iexact=texto).first()
 
-        return local  # 👈 devolvemos el Local, no el string
+        if local:
+            return local
+
+        # 2) No existe -> creamos uno nuevo
+        #    Usamos lo que escribes como código base (ej: 'gd01')
+        codigo_base = texto
+        codigo = codigo_base
+
+        # Evitar romper la restricción UNIQUE de `codigo`
+        contador = 1
+        while Local.objects.filter(codigo__iexact=codigo).exists():
+            contador += 1
+            codigo = f"{codigo_base}-{contador}"
+
+        local = Local.objects.create(
+            nombre=texto,
+            codigo=codigo,
+        )
+
+        return local
 
     def clean_asignado_a(self):
         tecnico = self.cleaned_data.get("asignado_a")
