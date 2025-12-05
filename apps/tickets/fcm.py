@@ -1,6 +1,9 @@
-import json
+# apps/tickets/fcm.py
+
 import requests
 from django.conf import settings
+from django.urls import reverse
+
 from apps.usuarios.models import DispositivoNotificacion
 
 from google.oauth2 import service_account
@@ -55,10 +58,13 @@ def enviar_notificacion_nuevo_ticket(ticket):
             "Content-Type": "application/json; charset=UTF-8",
         }
 
-        # URL del ticket (asegúrate de que BASE_URL sea https://majestiksolutions.pythonanywhere.com)
-        ticket_url = f"{settings.BASE_URL}/tickets/{ticket.id}/detalle/"
+        # 3) Construir la URL correcta del ticket usando reverse
+        #    En urls.py: path('tickets/<int:pk>/', views.ticket_detalle, name='ticket_detalle')
+        relative_url = reverse("ticket_detalle", args=[ticket.pk])
+        ticket_url = settings.BASE_URL.rstrip("/") + relative_url
+        print(f"[FCM] URL del ticket: {ticket_url}")
 
-        # 3) Enviar a cada dispositivo
+        # 4) Enviar a cada dispositivo
         for disp in dispositivos:
             cuerpo = {
                 "message": {
@@ -69,16 +75,10 @@ def enviar_notificacion_nuevo_ticket(ticket):
                     },
                     "data": {
                         "ticket_id": str(ticket.id),
-                        "estado": ticket.estado,
                         "ticket_url": ticket_url,
-                        # 👇 esto es clave para que Flutter reciba el tap
+                        "estado": ticket.estado,
+                        # Esto ayuda a que Android dispare onMessageOpenedApp
                         "click_action": "FLUTTER_NOTIFICATION_CLICK",
-                    },
-                    "android": {
-                        "notification": {
-                            # 👇 también aquí por compatibilidad
-                            "click_action": "FLUTTER_NOTIFICATION_CLICK",
-                        }
                     },
                 }
             }
