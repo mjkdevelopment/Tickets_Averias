@@ -48,3 +48,9 @@ class DispositivoNotificacionAdmin(admin.ModelAdmin):
     list_display = ("usuario", "activo")
     list_filter = ("activo",)
     search_fields = ("usuario__username", "fcm_token")
+
+
+admin.site.site_header = "Botija Tickets - Administración"
+admin.site.site_title = "Botija Tickets"
+admin.site.index_title = "Sitio administrativo"
+
