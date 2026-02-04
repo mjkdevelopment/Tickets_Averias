@@ -1,6 +1,7 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django import forms
+from unfold.admin import ModelAdmin
 
 from .models import Usuario, DispositivoNotificacion
 
@@ -30,13 +31,13 @@ class UsuarioAdminForm(forms.ModelForm):
 
 
 @admin.register(Usuario)
-class UsuarioAdmin(UserAdmin):
+class UsuarioAdmin(BaseUserAdmin, ModelAdmin):
     form = UsuarioAdminForm
 
     list_display = ("username", "first_name", "last_name", "rol", "is_active")
     list_filter = ("rol", "is_active", "is_staff", "is_superuser")
 
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = BaseUserAdmin.fieldsets + (
         ("Rol y categorías", {"fields": ("rol", "especialidades")}),
     )
 
@@ -44,10 +45,11 @@ class UsuarioAdmin(UserAdmin):
 
 
 @admin.register(DispositivoNotificacion)
-class DispositivoNotificacionAdmin(admin.ModelAdmin):
-    list_display = ("usuario", "activo")
+class DispositivoNotificacionAdmin(ModelAdmin):
+    list_display = ("usuario", "activo", "fecha_registro")
     list_filter = ("activo",)
     search_fields = ("usuario__username", "fcm_token")
+    readonly_fields = ("fecha_registro",)
 
 
 admin.site.site_header = "Botija Tickets - Administración"
