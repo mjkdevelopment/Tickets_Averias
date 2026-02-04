@@ -50,6 +50,10 @@ def registrar_dispositivo(request):
             status=404,
         )
 
+    # Primero eliminamos cualquier dispositivo con este token (puede pertenecer a otro usuario)
+    DispositivoNotificacion.objects.filter(fcm_token=token).exclude(usuario=usuario).delete()
+    
+    # Ahora actualizamos o creamos el dispositivo para este usuario
     dispositivo, creado = DispositivoNotificacion.objects.update_or_create(
         usuario=usuario,
         defaults={
