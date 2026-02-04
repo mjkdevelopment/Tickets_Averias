@@ -39,67 +39,65 @@
     </div>
     <div class="card-body">
         {% if tickets_abiertos %}
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Local</th>
-                            <th>Categoría</th>
-                            <th>Estado</th>
-                            <th>Creado</th>
-                            <th>Abierto</th>
-                            <th>SLA</th>
-                            <th>Asignado</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for t in tickets_abiertos %}
-                        <tr>
-                            <td class="fw-semibold">{{ t.numero_ticket }}</td>
-                            <td>
-                                <div class="fw-semibold">{{ t.local.codigo }}</div>
-                                <div class="text-muted small">{{ t.local.nombre }}</div>
-                            </td>
-                            <td>{{ t.categoria.nombre }}</td>
-                            <td>
-                                <span class="badge bg-secondary">{{ t.get_estado_display }}</span>
-                            </td>
-                            <td class="text-muted small">
-                                {{ t.fecha_creacion|date:"d/m/Y H:i" }}
-                            </td>
-                            <td>
-                                <span class="text-muted small">{{ t.fecha_creacion|timesince }}</span>
-                            </td>
-                            <td>
-                                {% if t.esta_vencido %}
-                                    <span class="badge bg-danger">Vencido</span>
-                                    <div class="text-muted small">hace {{ t.fecha_limite_sla|timesince }}</div>
-                                {% else %}
-                                    <span class="badge bg-{{ t.get_color_sla }}">En SLA</span>
-                                    <div class="text-muted small">faltan {{ t.fecha_limite_sla|timeuntil }}</div>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if t.asignado_a %}
-                                    {{ t.asignado_a.get_full_name|default:t.asignado_a.username }}
-                                {% else %}
-                                    <span class="text-muted">Sin asignar</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end">
-                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'ticket_detalle' t.pk %}">
-                                    Ver
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+            <div class="tickets-grid">
+                {% for t in tickets_abiertos %}
+                    <a href="{% url 'ticket_detalle' t.pk %}" class="text-decoration-none">
+                        <div class="card ticket-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <span class="ticket-number">{{ t.numero_ticket }}</span>
+                                    <span class="badge badge-estado 
+                                        {% if t.estado == 'EN_PROCESO' %}
+                                            bg-warning text-dark
+                                        {% elif t.estado == 'PENDIENTE' %}
+                                            bg-secondary
+                                        {% else %}
+                                            bg-info
+                                        {% endif %}">
+                                        {{ t.get_estado_display }}
+                                    </span>
+                                </div>
+                                
+                                <h5 class="ticket-local">{{ t.local.codigo }}</h5>
+                                <p class="ticket-category">{{ t.local.nombre }}</p>
+                                
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="ticket-meta">📋 {{ t.categoria.nombre }}</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    {% if t.esta_vencido %}
+                                        <span class="badge badge-sla vencido">
+                                            ⚠️ Vencido
+                                        </span>
+                                    {% else %}
+                                        {% with tiempo_restante=t.tiempo_restante_sla %}
+                                            {% if tiempo_restante.total_seconds < 7200 %}
+                                                <span class="badge badge-sla proximo">
+                                                    ⏰ Por vencer
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-sla ok">
+                                                    ✓ En SLA
+                                                </span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                    
+                                    <small class="text-muted ticket-meta">
+                                        {{ t.fecha_creacion|timesince }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
             </div>
         {% else %}
-            <p class="text-muted mb-0">No tienes tickets abiertos ahora mismo.</p>
+            <div class="alert alert-info text-center">
+                <i class="fs-1">📋</i>
+                <p class="mb-0 mt-2">No tienes tickets abiertos ahora mismo.</p>
+            </div>
         {% endif %}
     </div>
 </div>
