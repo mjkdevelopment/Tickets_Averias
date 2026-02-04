@@ -4,6 +4,9 @@ Configuración de Django para el proyecto Tickets_Averias
 
 from pathlib import Path
 from decouple import config
+from django.urls import reverse_lazy
+from django.templatetags.static import static
+from django.utils import timezone
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -162,4 +165,168 @@ FIREBASE_CREDENTIALS_FILE = BASE_DIR / "config" / "firebase_admin_key.json"
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
 FCM_SERVER_KEY = config('FCM_SERVER_KEY', default='')
+
+# Configuración de Django Unfold
+UNFOLD = {
+    "SITE_TITLE": "Tickets Averías",
+    "SITE_HEADER": "Administración de Tickets",
+    "SITE_URL": "/",
+    "SITE_ICON": {
+        "light": lambda request: static("images/mjk_tickets_logo.png"),
+        "dark": lambda request: static("images/mjk_tickets_logo.png"),
+    },
+    "SITE_LOGO": {
+        "light": lambda request: static("images/mjk_tickets_logo.png"),
+        "dark": lambda request: static("images/mjk_tickets_logo.png"),
+    },
+    "SITE_SYMBOL": "support_agent",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "ENVIRONMENT": "config.settings.environment_callback",
+    "DASHBOARD_CALLBACK": "config.settings.dashboard_callback",
+    "LOGIN": {
+        "image": lambda request: static("images/mjk_tickets_logo.png"),
+        "redirect_after": lambda request: reverse_lazy("admin:index"),
+    },
+    "STYLES": [
+        lambda request: static("css/unfold_custom.css"),
+    ],
+    "COLORS": {
+        "primary": {
+            "50": "250 245 255",
+            "100": "243 232 255",
+            "200": "233 213 255",
+            "300": "216 180 254",
+            "400": "192 132 252",
+            "500": "168 85 247",
+            "600": "147 51 234",
+            "700": "126 34 206",
+            "800": "107 33 168",
+            "900": "88 28 135",
+            "950": "59 7 100",
+        },
+    },
+    "EXTENSIONS": {
+        "modeltranslation": {
+            "flags": {
+                "es": "🇪🇸",
+                "en": "🇬🇧",
+            },
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Dashboard",
+                "separator": False,
+                "items": [
+                    {
+                        "title": "Inicio",
+                        "icon": "dashboard",
+                        "link": lambda request: reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": "Gestión de Tickets",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Tickets",
+                        "icon": "confirmation_number",
+                        "link": lambda request: reverse_lazy("admin:tickets_ticket_changelist"),
+                        "badge": "tickets.utils.get_tickets_abiertos_count",
+                    },
+                    {
+                        "title": "Categorías",
+                        "icon": "category",
+                        "link": lambda request: reverse_lazy("admin:tickets_categoriaaveria_changelist"),
+                    },
+                    {
+                        "title": "Comentarios",
+                        "icon": "comment",
+                        "link": lambda request: reverse_lazy("admin:tickets_comentarioticket_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Usuarios y Locales",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Usuarios",
+                        "icon": "people",
+                        "link": lambda request: reverse_lazy("admin:usuarios_usuario_changelist"),
+                    },
+                    {
+                        "title": "Locales",
+                        "icon": "store",
+                        "link": lambda request: reverse_lazy("admin:locales_local_changelist"),
+                    },
+                    {
+                        "title": "Dispositivos FCM",
+                        "icon": "notifications",
+                        "link": lambda request: reverse_lazy("admin:usuarios_dispositivonotificacion_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Configuración",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Grupos",
+                        "icon": "group",
+                        "link": lambda request: reverse_lazy("admin:auth_group_changelist"),
+                    },
+                    {
+                        "title": "Permisos",
+                        "icon": "lock",
+                        "link": lambda request: reverse_lazy("admin:auth_permission_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
+}
+
+
+def environment_callback(request):
+    """Muestra el ambiente actual en el header del admin"""
+    return ["Producción" if not DEBUG else "Desarrollo", "success" if not DEBUG else "warning"]
+
+
+def dashboard_callback(request, context):
+    """Personaliza el dashboard del admin"""
+    from apps.tickets.models import Ticket
+    from django.db.models import Count, Q
+    
+    context.update({
+        "navigation": [
+            {
+                "title": "Estadísticas Generales",
+                "items": [
+                    {
+                        "title": "Tickets Abiertos",
+                        "description": Ticket.objects.filter(estado__in=['PENDIENTE', 'EN_PROCESO']).count(),
+                        "icon": "confirmation_number",
+                    },
+                    {
+                        "title": "Tickets Vencidos",
+                        "description": Ticket.objects.filter(
+                            Q(estado__in=['PENDIENTE', 'EN_PROCESO']) & 
+                            Q(fecha_limite_sla__lt=timezone.now())
+                        ).count(),
+                        "icon": "warning",
+                    },
+                ],
+            },
+        ],
+    })
+    return context
 

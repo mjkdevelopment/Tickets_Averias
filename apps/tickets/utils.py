@@ -2,6 +2,12 @@ from django.conf import settings
 from twilio.rest import Client
 
 
+def get_tickets_abiertos_count(request):
+    """Retorna el conteo de tickets abiertos para el badge del sidebar"""
+    from .models import Ticket
+    return Ticket.objects.filter(estado__in=['PENDIENTE', 'EN_PROCESO']).count()
+
+
 def enviar_whatsapp_ticket_asignado(ticket):
     """
     Envía un WhatsApp al técnico asignado cuando se crea un ticket.
