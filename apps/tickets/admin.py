@@ -136,6 +136,9 @@ class TicketAdmin(ModelAdmin):
             return format_html('<span style="color:#dc3545; font-weight:bold;">⚠️ VENCIDO</span>')
         
         tiempo_restante = obj.tiempo_restante_sla()
+        if tiempo_restante is None:
+            return format_html('<span style="color:#28a745;">✓ Completado</span>')
+        
         if tiempo_restante.total_seconds() < 7200:  # menos de 2 horas
             return format_html('<span style="color:#ffc107; font-weight:bold;">⏰ Por vencer</span>')
         
@@ -198,7 +201,7 @@ class TicketAdmin(ModelAdmin):
 @admin.register(ComentarioTicket)
 class ComentarioTicketAdmin(ModelAdmin):
     list_display = ('ticket_link', 'autor_link', 'comentario_preview', 'fecha_creacion_display')
-    list_filter = ('fecha_creacion', 'autor')
+    list_filter = ('fecha_creacion',)
     search_fields = ('ticket__numero_ticket', 'comentario', 'autor__username')
     readonly_fields = ('fecha_creacion',)
     date_hierarchy = 'fecha_creacion'
