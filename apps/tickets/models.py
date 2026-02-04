@@ -191,6 +191,11 @@ class Ticket(models.Model):
         verbose_name='Notificación enviada'
     )
 
+    notificacion_sla_enviada = models.BooleanField(
+        default=False,
+        verbose_name='Notificación SLA enviada'
+    )
+
     fecha_actualizacion = models.DateTimeField(
         auto_now=True,
         verbose_name='Fecha de actualización'
