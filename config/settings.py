@@ -274,23 +274,6 @@ UNFOLD = {
                     },
                 ],
             },
-            {
-                "title": "Configuración",
-                "separator": True,
-                "collapsible": True,
-                "items": [
-                    {
-                        "title": "Grupos",
-                        "icon": "group",
-                        "link": lambda request: reverse_lazy("admin:auth_group_changelist"),
-                    },
-                    {
-                        "title": "Permisos",
-                        "icon": "lock",
-                        "link": lambda request: reverse_lazy("admin:auth_permission_changelist"),
-                    },
-                ],
-            },
         ],
     },
 }
