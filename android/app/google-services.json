@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "756846825772",
+    "project_id": "mjk-tickets",
+    "storage_bucket": "mjk-tickets.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756846825772:android:2100fd2c3a7a4549fadc89",
+        "android_client_info": {
+          "package_name": "com.example.mjk_tickets_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzO-P7EHD7J98SewB30awOVULmZyRA_sU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
