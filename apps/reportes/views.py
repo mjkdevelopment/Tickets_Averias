@@ -42,11 +42,11 @@ def _human_timedelta(td):
 @login_required
 def reportes_dashboard(request):
     """
-    Reportes (solo ADMIN):
+    Reportes (ADMIN o staff):
     - SLA por banca (promedios, % cumplimiento)
     - Reincidencias por banca/categoría (últimos 3 meses)
     """
-    if getattr(request.user, "rol", None) != "ADMIN":
+    if not request.user.es_admin():
         return HttpResponseForbidden("No tienes permiso para ver reportes.")
 
     ahora = timezone.now()

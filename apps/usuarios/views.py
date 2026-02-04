@@ -67,18 +67,19 @@ def dashboard(request):
         .select_related('local', 'categoria', 'asignado_a', 'creado_por')
     )
 
-    if usuario.rol == 'DIGITADOR':
-        qs = qs.filter(creado_por=usuario)
+    if not usuario.es_admin():
+        if usuario.rol == 'DIGITADOR':
+            qs = qs.filter(creado_por=usuario)
 
-    elif usuario.rol == 'TECNICO':
-        cats = usuario.especialidades.all()
-        if cats.exists():
-            qs = qs.filter(
-                Q(asignado_a=usuario) |
-                Q(asignado_a__isnull=True, categoria__in=cats)
-            )
-        else:
-            qs = qs.filter(asignado_a=usuario)
+        elif usuario.rol == 'TECNICO':
+            cats = usuario.especialidades.all()
+            if cats.exists():
+                qs = qs.filter(
+                    Q(asignado_a=usuario) |
+                    Q(asignado_a__isnull=True, categoria__in=cats)
+                )
+            else:
+                qs = qs.filter(asignado_a=usuario)
 
     # Resumen
     total_abiertos = qs.count()

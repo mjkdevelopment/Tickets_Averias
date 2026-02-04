@@ -71,7 +71,7 @@ class Usuario(AbstractUser):
 
     def es_admin(self):
         """Verifica si el usuario es administrador"""
-        return self.rol == 'ADMIN'
+        return self.rol == 'ADMIN' or self.is_staff
 
     def es_digitador(self):
         """Verifica si el usuario es digitador"""
