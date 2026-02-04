@@ -53,7 +53,7 @@ def reportes_dashboard(request):
     # “Últimos 3 meses” -> usamos 90 días (simple y estable)
     desde = ahora - timedelta(days=90)
 
-    estados_abiertos = ["PENDIENTE", "EN_PROCESO", "RESUELTO"]
+    estados_abiertos = ["PENDIENTE", "EN_PROCESO"]
     estados_cerrados = ["RESUELTO", "CERRADO"]
 
     # =========================

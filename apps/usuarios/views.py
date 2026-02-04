@@ -59,7 +59,7 @@ def dashboard(request):
     usuario = request.user
     ahora = timezone.now()
 
-    estados_abiertos = ['PENDIENTE', 'EN_PROCESO', 'RESUELTO']
+    estados_abiertos = ['PENDIENTE', 'EN_PROCESO']
 
     qs = (
         Ticket.objects
