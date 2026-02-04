@@ -41,7 +41,7 @@ class CategoriaAveriaAdmin(ModelAdmin):
 class ComentarioInline(admin.TabularInline):
     model = ComentarioTicket
     extra = 1
-    fields = ('autor', 'comentario', 'fecha_creacion')
+    fields = ('usuario', 'comentario', 'fecha_creacion')
     readonly_fields = ('fecha_creacion',)
 
 
