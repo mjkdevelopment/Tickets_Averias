@@ -36,7 +36,7 @@
 }
 
 .changelist-results th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
     color: white;
     font-weight: 600;
     text-transform: uppercase;
@@ -63,7 +63,7 @@
 
 /* Acciones mejoradas */
 .actions {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
     color: white;
     border-radius: 8px;
     padding: 1rem;
