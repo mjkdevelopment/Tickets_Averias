@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -82,7 +83,7 @@ const String kPanelBaseUrl =
     'https://majestiksolutions.pythonanywhere.com/tickets/';
 
 /// Versión actual de la app (debe coincidir con config/app_version.py en el server)
-const String kAppVersion = '1.0.3';
+const String kAppVersion = '1.0.4';
 
 /// URL de la API de versión
 const String kVersionApiUrl =
@@ -90,6 +91,21 @@ const String kVersionApiUrl =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Modo edge-to-edge: ocultar barra de navegación Android
+  // El usuario puede deslizar hacia arriba para verla temporalmente
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+  );
+
+  // Barras de sistema transparentes para experiencia inmersiva
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: Colors.transparent,
+  ));
 
   // Inicializar Firebase
   await Firebase.initializeApp();
@@ -287,17 +303,18 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..enableZoom(false)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (_) {
-            setState(() {
-              _isLoading = true;
-            });
+            if (mounted) setState(() { _isLoading = true; });
           },
           onPageFinished: (_) {
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) setState(() { _isLoading = false; });
+            // Optimizar rendering dentro del WebView
+            _controller.runJavaScript(
+              "document.documentElement.style.webkitTapHighlightColor='transparent';"
+            );
           },
         ),
       )
@@ -306,18 +323,27 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Safely avoid the native status bar at top (iOS/Android notch) and bottom nav
-          SafeArea(
-            child: WebViewWidget(controller: _controller),
-          ),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(color: Color(0xFFF97316)),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Edge-to-edge: SafeArea solo en top para evitar overlap con notch/status bar
+            SafeArea(
+              bottom: false, // Permitir contenido hasta el borde inferior
+              child: WebViewWidget(controller: _controller),
             ),
-        ],
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(color: Color(0xFFF97316)),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -356,11 +382,11 @@ class UpdateRequiredScreen extends StatelessWidget {
                         colors: [Color(0xFFF97316), Color(0xFFEA580C)],
                       ),
                       borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
-                          color: const Color(0xFFF97316).withOpacity(0.3),
+                          color: Color(0x4DF97316), // orange 30%
                           blurRadius: 24,
-                          offset: const Offset(0, 8),
+                          offset: Offset(0, 8),
                         ),
                       ],
                     ),
@@ -446,7 +472,7 @@ class UpdateRequiredScreen extends StatelessWidget {
                         ),
                         elevation: 4,
                         shadowColor:
-                            const Color(0xFFF97316).withOpacity(0.3),
+                            const Color(0x4DF97316), // orange 30%
                       ),
                     ),
                   ),
