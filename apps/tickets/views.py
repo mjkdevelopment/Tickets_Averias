@@ -37,6 +37,17 @@ def tickets_lista(request):
     if usuario.es_digitador():
         tickets = tickets.filter(creado_por=usuario)
 
+        # Digitador también puede filtrar por estado
+        if ver == 'abiertos':
+            tickets = tickets.exclude(
+                estado__in=['RESUELTO', 'CERRADO', 'CANCELADO']
+            )
+        elif ver == 'cerrados':
+            tickets = tickets.filter(
+                estado__in=['RESUELTO', 'CERRADO', 'CANCELADO']
+            )
+        # ver == 'todos' => sin filtro extra
+
     elif usuario.es_tecnico():
         cats = usuario.especialidades.all()
 
