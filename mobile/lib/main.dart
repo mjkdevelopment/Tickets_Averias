@@ -83,7 +83,7 @@ const String kPanelBaseUrl =
     'https://majestiksolutions.pythonanywhere.com/tickets/';
 
 /// Versión actual de la app (debe coincidir con config/app_version.py en el server)
-const String kAppVersion = '1.0.4';
+const String kAppVersion = '1.0.5';
 
 /// URL de la API de versión
 const String kVersionApiUrl =
@@ -342,6 +342,28 @@ class _WebViewScreenState extends State<WebViewScreen> {
               const Center(
                 child: CircularProgressIndicator(color: Color(0xFFF97316)),
               ),
+            // Indicador de versión no invasivo
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 4,
+              right: 8,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0x33000000), // negro 20%
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'v$kAppVersion',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Color(0x99FFFFFF), // blanco 60%
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
