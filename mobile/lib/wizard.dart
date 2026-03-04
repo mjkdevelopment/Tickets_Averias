@@ -327,7 +327,6 @@ class _OnboardingWizardState extends State<OnboardingWizard> {
               ),
             ),
           ),
-        ),
       );
   }
 
@@ -453,7 +452,6 @@ class _OnboardingWizardState extends State<OnboardingWizard> {
               ),
             ),
           ),
-        ),
       );
   }
 }

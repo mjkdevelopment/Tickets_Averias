@@ -191,7 +191,6 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
