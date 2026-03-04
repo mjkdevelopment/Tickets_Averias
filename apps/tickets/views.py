@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 
 from .utils import enviar_whatsapp_ticket_asignado
-from apps.tickets.models import Ticket, ComentarioTicket
+from apps.tickets.models import Ticket, ComentarioTicket, ImagenTicket
 from apps.tickets.forms import TicketForm, ComentarioTicketForm, TicketEstadoForm
 from .fcm import enviar_notificacion_nuevo_ticket
 from apps.locales.models import Local
@@ -105,7 +105,7 @@ def ticket_crear(request):
         return redirect('tickets_lista')
 
     if request.method == 'POST':
-        form = TicketForm(request.POST, usuario=usuario)
+        form = TicketForm(request.POST, request.FILES, usuario=usuario)
         if form.is_valid():
             ticket = form.save(commit=False)
             ticket.creado_por = usuario
@@ -128,6 +128,14 @@ def ticket_crear(request):
 
             ticket.save()
             form.save_m2m()  # por si el form tiene ManyToMany
+
+            # Guardar imágenes adjuntas
+            for archivo in request.FILES.getlist('imagenes'):
+                ImagenTicket.objects.create(
+                    ticket=ticket,
+                    imagen=archivo,
+                    subida_por=usuario,
+                )
 
             # 👉 WhatsApp al técnico asignado (como ya tenías)
             enviar_whatsapp_ticket_asignado(ticket)
@@ -169,9 +177,8 @@ def ticket_detalle(request, pk):
         pass
 
     elif usuario.es_digitador():
-        # Digitador solo ve tickets que él creó
-        if ticket.creado_por != usuario:
-            return HttpResponseForbidden("No tienes permiso para ver este ticket.")
+        # Digitador ve todos los tickets (propios y de otros)
+        pass
 
     elif usuario.es_tecnico():
         # Técnico: siempre puede ver los que están asignados a él
@@ -262,6 +269,7 @@ def ticket_detalle(request, pk):
         "estado_form": estado_form,
         "comentario_form": comentario_form,
         "comentarios": comentarios,
+        "imagenes": ticket.imagenes.all(),
         "puede_actualizar_estado": puede_actualizar_estado,
     })
 

@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
-from .models import Ticket, ComentarioTicket, CategoriaAveria
+from .models import Ticket, ComentarioTicket, CategoriaAveria, ImagenTicket
 
 
 @admin.register(CategoriaAveria)
@@ -45,6 +45,13 @@ class ComentarioInline(admin.TabularInline):
     readonly_fields = ('fecha_creacion',)
 
 
+class ImagenInline(admin.TabularInline):
+    model = ImagenTicket
+    extra = 0
+    readonly_fields = ('fecha_subida', 'subida_por')
+    fields = ('imagen', 'descripcion', 'subida_por', 'fecha_subida')
+
+
 @admin.register(Ticket)
 class TicketAdmin(ModelAdmin):
     list_display = ('numero_ticket_display', 'local_link', 'categoria_badge', 'estado_badge', 'prioridad_badge', 
@@ -55,7 +62,7 @@ class TicketAdmin(ModelAdmin):
     date_hierarchy = 'fecha_creacion'
     ordering = ('-fecha_creacion',)
     list_per_page = 50
-    inlines = [ComentarioInline]
+    inlines = [ComentarioInline, ImagenInline]
     actions = ['marcar_en_proceso', 'marcar_resuelto', 'marcar_cerrado']
     
     fieldsets = (

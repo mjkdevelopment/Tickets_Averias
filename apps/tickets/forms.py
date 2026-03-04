@@ -1,6 +1,6 @@
 from django import forms
 
-from apps.tickets.models import Ticket, ComentarioTicket, CategoriaAveria
+from apps.tickets.models import Ticket, ComentarioTicket, CategoriaAveria, ImagenTicket
 from apps.locales.models import Local
 from apps.usuarios.models import Usuario
 
@@ -176,31 +176,25 @@ class TicketEstadoForm(forms.ModelForm):
 
 class ComentarioTicketForm(forms.ModelForm):
     """
-    Formulario para agregar comentarios a un ticket.
-    Solo técnicos y admins pueden marcar comentarios como internos.
+    Formulario chat-style para agregar comentarios a un ticket.
+    Todos los roles participan: admin, digitadores y técnicos.
     """
 
     class Meta:
         model = ComentarioTicket
-        fields = ["comentario", "es_interno"]
+        fields = ["comentario"]
         widgets = {
             "comentario": forms.Textarea(
                 attrs={
-                    "rows": 3,
-                    "placeholder": "Escribe tu comentario aquí...",
+                    "rows": 2,
+                    "placeholder": "Escribe un comentario...",
+                    "class": "form-control",
                 }
             ),
         }
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)
-
-        self.fields["comentario"].widget.attrs.update({"class": "form-control"})
-
-        # Si no es técnico ni admin, ocultamos el campo "es_interno"
-        if user and not (user.es_tecnico() or user.es_admin()):
-            self.fields.pop("es_interno", None)
+        labels = {
+            "comentario": "",
+        }
 
 
 class FiltroTicketsForm(forms.Form):

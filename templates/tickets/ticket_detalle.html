@@ -102,6 +102,29 @@
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- Galería de imágenes adjuntas -->
+                {% if imagenes %}
+                <div class="mt-6 pt-6 border-t border-stone-200/60">
+                    <p class="text-xs font-bold text-textmuted uppercase tracking-widest mb-3 flex items-center">
+                        <i class="ph-fill ph-images mr-1.5 text-primary"></i> Imágenes adjuntas ({{ imagenes|length }})
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {% for img in imagenes %}
+                        <a href="{{ img.imagen.url }}" target="_blank" class="group relative block rounded-xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
+                            <img src="{{ img.imagen.url }}" alt="{{ img.descripcion|default:'Imagen adjunta' }}"
+                                class="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                <i class="ph-bold ph-magnifying-glass-plus text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
+                                <span class="text-[9px] text-white/90 font-medium">{{ img.subida_por.get_full_name|default:img.subida_por.username }} · {{ img.fecha_subida|timesince }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Formulario de cambio de estado -->
@@ -191,16 +214,19 @@
                 <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll">
                     {% if comentarios %}
                     {% for c in comentarios %}
-                    <div class="flex gap-4">
+                    <div class="flex gap-3">
                         <div class="shrink-0">
                             <div
-                                class="w-10 h-10 rounded-full bg-orange-100 border border-orange-200 text-primary flex items-center justify-center font-bold text-sm shadow-sm opacity-90">
+                                class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm
+                                {% if c.usuario.es_admin %}bg-stone-800 text-white
+                                {% elif c.usuario.es_tecnico %}bg-blue-100 border border-blue-200 text-blue-700
+                                {% else %}bg-orange-100 border border-orange-200 text-primary{% endif %}">
                                 {{ c.usuario.username|first|upper }}
                             </div>
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1 min-w-0">
                             <div
-                                class="bg-white border border-stone-200 rounded-2xl rounded-tl-none p-4 shadow-sm relative">
+                                class="bg-white border border-stone-200 rounded-2xl rounded-tl-none p-3.5 shadow-sm relative">
                                 <!-- Speech bubble tick -->
                                 <div
                                     class="absolute -left-2 top-0 w-0 h-0 border-t-[0px] border-t-transparent border-r-[8px] border-r-stone-200 border-b-[10px] border-b-transparent">
@@ -209,11 +235,18 @@
                                     class="absolute -left-[6px] top-[1px] w-0 h-0 border-t-[0px] border-t-transparent border-r-[7px] border-r-white border-b-[8px] border-b-transparent">
                                 </div>
 
-                                <div class="flex justify-between items-start mb-2">
-                                    <span class="font-bold text-sm text-textmain">{{ c.usuario }}</span>
-                                    <span class="text-[10px] font-bold text-textmuted flex items-center">
-                                        <i class="ph-fill ph-clock mr-1"></i>
-                                        {{ c.fecha_creacion|date:"D d M H:i" }}
+                                <div class="flex justify-between items-center mb-1.5 gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="font-bold text-sm text-textmain truncate">{{ c.usuario.get_full_name|default:c.usuario.username }}</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0
+                                            {% if c.usuario.es_admin %}bg-stone-100 text-stone-600
+                                            {% elif c.usuario.es_tecnico %}bg-blue-50 text-blue-600
+                                            {% else %}bg-orange-50 text-orange-600{% endif %}">
+                                            {{ c.usuario.get_rol_display }}
+                                        </span>
+                                    </div>
+                                    <span class="text-[10px] text-textmuted shrink-0">
+                                        {{ c.fecha_creacion|date:"d/m H:i" }}
                                     </span>
                                 </div>
                                 <div class="text-sm text-stone-700 leading-relaxed">
@@ -232,18 +265,29 @@
                 </div>
             </div>
 
-            <!-- Formulario para nuevo comentario -->
-            <div class="glass neon-snake rounded-2xl p-6 shadow-sm">
+            <!-- Formulario para nuevo comentario (chat-style) -->
+            <div class="glass neon-snake rounded-2xl p-4 shadow-sm">
                 <form method="post" enctype="multipart/form-data" class="ticket-form">
                     {% csrf_token %}
-                    <div class="mb-4">
-                        {{ comentario_form.as_p }}
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 mt-1">
+                            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                {{ user.username|first|upper }}
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <textarea name="comentario" rows="2"
+                                placeholder="Escribe un comentario..."
+                                class="w-full resize-none"
+                                required></textarea>
+                        </div>
+                        <div class="shrink-0 self-end">
+                            <button type="submit" name="nuevo_comentario"
+                                class="w-10 h-10 bg-primary hover:bg-primary_hover text-white rounded-xl flex items-center justify-center transition-colors shadow-sm active:scale-95">
+                                <i class="ph-bold ph-paper-plane-tilt text-lg"></i>
+                            </button>
+                        </div>
                     </div>
-                    <button type="submit" name="nuevo_comentario"
-                        class="w-full bg-white hover:bg-stone-50 text-textmain border border-stone-200 px-5 py-3 rounded-xl font-bold transition-all shadow-sm flex items-center justify-center active:scale-[0.98]">
-                        <i class="ph-bold ph-paper-plane-tilt text-primary mr-2 text-lg"></i>
-                        Enviar comentario
-                    </button>
                 </form>
             </div>
 

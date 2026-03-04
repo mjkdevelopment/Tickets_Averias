@@ -90,6 +90,31 @@
                 </p>
             </div>
 
+            <!-- IMÁGENES -->
+            <div class="form-group pt-4 border-t border-stone-200/60">
+                <label class="flex items-center">
+                    <i class="ph-bold ph-image mr-1.5 text-primary text-lg"></i> Adjuntar imágenes (opcional)
+                </label>
+                <div class="relative">
+                    <input type="file" name="imagenes" multiple accept="image/*"
+                        id="id_imagenes"
+                        class="block w-full text-sm text-stone-500
+                            file:mr-4 file:py-2.5 file:px-4
+                            file:rounded-xl file:border file:border-stone-200
+                            file:text-sm file:font-bold
+                            file:bg-white file:text-textmain
+                            hover:file:bg-stone-50
+                            file:transition-colors file:cursor-pointer
+                            cursor-pointer" />
+                </div>
+                <p class="text-[11px] text-stone-500 mt-2 flex items-center">
+                    <i class="ph-fill ph-info mr-1"></i>
+                    Puedes seleccionar varias fotos: screenshots, fotos de WhatsApp, evidencias, etc.
+                </p>
+                <!-- Preview de imágenes seleccionadas -->
+                <div id="img-preview" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-3"></div>
+            </div>
+
             <!-- BOTONES -->
             <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8 pt-6">
                 <a href="{% url 'tickets_lista' %}"
@@ -149,4 +174,27 @@
         margin-bottom: 0.5rem;
     }
 </style>
+
+<script>
+    // Preview de imágenes seleccionadas
+    const inputImg = document.getElementById('id_imagenes');
+    const preview = document.getElementById('img-preview');
+    if (inputImg) {
+        inputImg.addEventListener('change', function () {
+            preview.innerHTML = '';
+            Array.from(this.files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const div = document.createElement('div');
+                    div.className = 'relative group';
+                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-20 object-cover rounded-lg border border-stone-200 shadow-sm" />
+                        <span class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[9px] text-center py-0.5 rounded-b-lg truncate px-1">${file.name}</span>`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+</script>
 {% endblock %}

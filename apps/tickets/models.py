@@ -290,7 +290,8 @@ class Ticket(models.Model):
 
 class ComentarioTicket(models.Model):
     """
-    Comentarios y seguimiento de los tickets
+    Comentarios y seguimiento de los tickets.
+    Funciona como un chat/historial donde participan admin, digitadores y técnicos.
     """
     ticket = models.ForeignKey(
         Ticket,
@@ -327,3 +328,47 @@ class ComentarioTicket(models.Model):
 
     def __str__(self):
         return f"Comentario de {self.usuario} en {self.ticket.numero_ticket}"
+
+
+class ImagenTicket(models.Model):
+    """
+    Imágenes adjuntas a un ticket.
+    El digitador puede subir screenshots o fotos de WhatsApp al crear o comentar.
+    """
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='imagenes',
+        verbose_name='Ticket'
+    )
+
+    imagen = models.ImageField(
+        upload_to='fotos_tickets/%Y/%m/',
+        verbose_name='Imagen'
+    )
+
+    descripcion = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name='Descripción',
+        help_text='Descripción breve de la imagen (opcional)'
+    )
+
+    subida_por = models.ForeignKey(
+        Usuario,
+        on_delete=models.PROTECT,
+        verbose_name='Subida por'
+    )
+
+    fecha_subida = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de subida'
+    )
+
+    class Meta:
+        verbose_name = 'Imagen de ticket'
+        verbose_name_plural = 'Imágenes de tickets'
+        ordering = ['fecha_subida']
+
+    def __str__(self):
+        return f"Imagen de {self.ticket.numero_ticket} por {self.subida_por}"
