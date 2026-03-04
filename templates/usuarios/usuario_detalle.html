@@ -24,6 +24,11 @@
                 <i class="ph-bold ph-pencil-simple mr-2"></i>
                 Editar
             </a>
+            <a href="{% url 'usuario_cambiar_password' usuario.pk %}"
+                class="bg-white border border-stone-200 text-textmuted hover:text-primary hover:border-primary/50 px-4 py-2 rounded-xl font-bold shadow-sm transition-all active:scale-95 flex items-center">
+                <i class="ph-bold ph-lock-key mr-2"></i>
+                Contraseña
+            </a>
         </div>
     </div>
 

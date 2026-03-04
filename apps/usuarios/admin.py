@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserCreationForm
 from django.utils.html import format_html
 from django.urls import reverse
 from django import forms
@@ -34,6 +35,7 @@ class UsuarioAdminForm(forms.ModelForm):
 @admin.register(Usuario)
 class UsuarioAdmin(BaseUserAdmin, ModelAdmin):
     form = UsuarioAdminForm
+    add_form = UserCreationForm
 
     list_display = ("username_display", "nombre_completo", "rol_badge", "especialidades_list", 
                     "is_active_display", "is_staff_display", "tickets_asignados")
@@ -42,10 +44,23 @@ class UsuarioAdmin(BaseUserAdmin, ModelAdmin):
     ordering = ("username",)
     list_per_page = 50
 
-    fieldsets = BaseUserAdmin.fieldsets + (
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("Información personal", {"fields": ("first_name", "last_name", "email", "telefono", "whatsapp")}),
         ("Rol y Especialidades", {
             "fields": ("rol", "especialidades"),
             "description": "Configura el rol del usuario y sus especialidades técnicas"
+        }),
+        ("Permisos", {
+            "fields": ("is_active", "activo", "is_staff", "is_superuser", "groups", "user_permissions"),
+        }),
+        ("Fechas importantes", {"fields": ("last_login", "date_joined")}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": ("username", "password1", "password2", "rol"),
         }),
     )
 
@@ -131,11 +146,9 @@ class DispositivoNotificacionAdmin(ModelAdmin):
         url = reverse('admin:usuarios_usuario_change', args=[obj.usuario.pk])
         return format_html('<a href="{}">{}</a>', url, obj.usuario.username)
     
-    @display(description='Estado', ordering='activo')
+    @display(description='Activo', boolean=True, ordering='activo')
     def activo_display(self, obj):
-        if obj.activo:
-            return format_html('<span style="background:#28a745; padding:3px 10px; border-radius:4px; color:white; font-size:11px; font-weight:bold;">Aprobado</span>')
-        return format_html('<span style="background:#ffc107; padding:3px 10px; border-radius:4px; color:#212529; font-size:11px; font-weight:bold;">Pendiente</span>')
+        return obj.activo
     
     @display(description='Registrado', ordering='fecha_registro')
     def fecha_registro_display(self, obj):

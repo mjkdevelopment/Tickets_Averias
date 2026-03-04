@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from .forms import LoginForm, UsuarioCreateForm, UsuarioUpdateForm
+from .forms import LoginForm, UsuarioCreateForm, UsuarioUpdateForm, CambiarPasswordForm
 from .models import DispositivoNotificacion
 
 Usuario = get_user_model()
@@ -180,6 +180,34 @@ def usuario_editar(request, pk):
         request,
         "usuarios/usuario_form.html",
         {"form": form, "titulo": "Editar usuario"},
+    )
+
+
+@login_required
+def usuario_cambiar_password(request, pk):
+    """
+    Cambiar contraseña de un usuario (solo admin).
+    """
+    if not request.user.es_admin():
+        messages.error(request, "No tienes permisos para cambiar contraseñas")
+        return redirect("dashboard")
+
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    if request.method == "POST":
+        form = CambiarPasswordForm(request.POST)
+        if form.is_valid():
+            usuario.set_password(form.cleaned_data["password1"])
+            usuario.save()
+            messages.success(request, f"Contraseña de {usuario.username} actualizada correctamente")
+            return redirect("usuario_detalle", pk=usuario.pk)
+    else:
+        form = CambiarPasswordForm()
+
+    return render(
+        request,
+        "usuarios/usuario_password.html",
+        {"form": form, "usuario": usuario},
     )
 
 
