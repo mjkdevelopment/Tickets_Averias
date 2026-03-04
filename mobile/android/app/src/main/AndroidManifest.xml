@@ -6,10 +6,14 @@
     <!-- Permiso de notificaciones para Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Permiso para instalar APKs (auto-actualización) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <application
         android:label="La Botija Tickets"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
 
         <!-- Canal por defecto para notificaciones de Firebase Messaging -->
         <meta-data
@@ -47,12 +51,27 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- FileProvider para open_filex (instalar APK) -->
+        <provider
+            android:name="com.crazecoder.openfile.FileProvider"
+            android:authorities="${applicationId}.fileProvider.com.crazecoder.openfile"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
     </application>
 
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" />
         </intent>
     </queries>
 </manifest>
