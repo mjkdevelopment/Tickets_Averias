@@ -160,7 +160,7 @@ class DispositivoNotificacionAdmin(ModelAdmin):
         self.message_user(request, f'{updated} dispositivo(s) desactivado(s).')
 
 
-admin.site.site_header = "Botija Tickets - Administración"
-admin.site.site_title = "Botija Tickets"
+admin.site.site_header = "MJK Tickets - Administración"
+admin.site.site_title = "MJK Tickets"
 admin.site.index_title = "Sitio administrativo"
 
