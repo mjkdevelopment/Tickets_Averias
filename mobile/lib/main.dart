@@ -82,7 +82,7 @@ const String kPanelBaseUrl =
     'https://majestiksolutions.pythonanywhere.com/tickets/';
 
 /// Versión actual de la app (debe coincidir con config/app_version.py en el server)
-const String kAppVersion = '1.0.0';
+const String kAppVersion = '1.0.2';
 
 /// URL de la API de versión
 const String kVersionApiUrl =

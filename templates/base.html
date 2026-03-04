@@ -346,11 +346,11 @@
         {% if user.is_authenticated %}
         <!-- MOBILE BOTTOM NAVIGATION (Hidden on Desktop) -->
         <nav
-            class="md:hidden absolute bottom-0 left-0 w-full glass pb-8 pt-4 px-6 z-50 rounded-t-[30px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-white/60">
-            <div class="flex justify-between items-center relative">
+            class="md:hidden absolute bottom-0 left-0 w-full glass pb-8 pt-4 px-4 z-50 rounded-t-[30px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-white/60">
+            <div class="flex justify-around items-center">
 
                 <a href="{% url 'dashboard' %}"
-                    class="flex flex-col items-center justify-center w-12 {% if request.resolver_match.url_name == 'dashboard' %}text-primary{% else %}text-textmuted{% endif %} group transition-colors">
+                    class="flex flex-col items-center justify-center flex-1 py-2 {% if request.resolver_match.url_name == 'dashboard' %}text-primary{% else %}text-textmuted{% endif %} transition-colors active:scale-95">
                     <div
                         class="p-1.5 {% if request.resolver_match.url_name == 'dashboard' %}bg-orange-100 rounded-xl{% endif %} mb-1 transition-all">
                         <i
@@ -360,31 +360,33 @@
                 </a>
 
                 <a href="{% url 'tickets_lista' %}"
-                    class="flex flex-col items-center justify-center w-12 {% if 'ticket' in request.resolver_match.url_name %}text-primary{% else %}text-textmuted{% endif %} transition-colors pr-8">
-                    <i
-                        class="{% if 'ticket' in request.resolver_match.url_name %}ph-fill{% else %}ph{% endif %} ph-list-dashes text-2xl mb-1"></i>
-                    <span class="text-[10px] font-semibold">Tickets</span>
+                    class="flex flex-col items-center justify-center flex-1 py-2 {% if 'ticket' in request.resolver_match.url_name %}text-primary{% else %}text-textmuted{% endif %} transition-colors active:scale-95">
+                    <div
+                        class="p-1.5 {% if 'ticket' in request.resolver_match.url_name %}bg-orange-100 rounded-xl{% endif %} mb-1 transition-all">
+                        <i
+                            class="{% if 'ticket' in request.resolver_match.url_name %}ph-fill{% else %}ph{% endif %} ph-list-dashes text-2xl"></i>
+                    </div>
+                    <span class="text-[10px] font-bold">Tickets</span>
                 </a>
 
-                <!-- Floating FAB for New Ticket -->
-                <div class="absolute left-1/2 -top-12 transform -translate-x-1/2">
-                    <a href="{% url 'ticket_crear' %}"
-                        class="w-16 h-16 rounded-full bg-gradient-to-b from-primary to-primary_hover text-white shadow-xl shadow-primary/40 flex items-center justify-center border-4 border-white active:scale-95 transition-transform">
-                        <i class="ph-bold ph-plus text-3xl"></i>
-                    </a>
-                </div>
-
+                {% if user.es_admin %}
                 <a href="{% url 'reportes_dashboard' %}"
-                    class="flex flex-col items-center justify-center w-12 {% if 'reporte' in request.resolver_match.url_name %}text-primary{% else %}text-textmuted{% endif %} transition-colors pl-8">
-                    <i
-                        class="{% if 'reporte' in request.resolver_match.url_name %}ph-fill{% else %}ph{% endif %} ph-chart-line-up text-2xl mb-1"></i>
-                    <span class="text-[10px] font-semibold">Reportes</span>
+                    class="flex flex-col items-center justify-center flex-1 py-2 {% if 'reporte' in request.resolver_match.url_name %}text-primary{% else %}text-textmuted{% endif %} transition-colors active:scale-95">
+                    <div
+                        class="p-1.5 {% if 'reporte' in request.resolver_match.url_name %}bg-orange-100 rounded-xl{% endif %} mb-1 transition-all">
+                        <i
+                            class="{% if 'reporte' in request.resolver_match.url_name %}ph-fill{% else %}ph{% endif %} ph-chart-line-up text-2xl"></i>
+                    </div>
+                    <span class="text-[10px] font-bold">Reportes</span>
                 </a>
+                {% endif %}
 
                 <a href="{% url 'logout' %}"
-                    class="flex flex-col items-center justify-center w-12 text-textmuted hover:text-red-500 transition-colors">
-                    <i class="ph ph-sign-out text-2xl mb-1"></i>
-                    <span class="text-[10px] font-semibold">Salir</span>
+                    class="flex flex-col items-center justify-center flex-1 py-2 text-textmuted hover:text-red-500 transition-colors active:scale-95">
+                    <div class="p-1.5 mb-1">
+                        <i class="ph ph-sign-out text-2xl"></i>
+                    </div>
+                    <span class="text-[10px] font-bold">Salir</span>
                 </a>
 
             </div>
