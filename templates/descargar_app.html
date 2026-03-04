@@ -42,7 +42,7 @@
             <!-- Download button -->
             {% if apk_available %}
             <a href="{{ download_url }}"
-                style="display:flex; align-items:center; justify-content:center; width:100%; background:linear-gradient(135deg,#F97316,#EA580C); color:white; padding:16px 24px; border-radius:16px; font-size:16px; font-weight:700; text-decoration:none; box-shadow:0 8px 24px rgba(249,115,22,0.3); transition:all 0.2s; border:1px solid rgba(255,255,255,0.2);"
+                style="display:flex; align-items:center; justify-content:center; width:100%; max-width:320px; margin:0 auto; background:linear-gradient(135deg,#F97316,#EA580C); color:white; padding:16px 24px; border-radius:16px; font-size:16px; font-weight:700; text-decoration:none; box-shadow:0 8px 24px rgba(249,115,22,0.3); transition:all 0.2s; border:1px solid rgba(255,255,255,0.2);"
                 onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right:10px;">
                     <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
@@ -51,7 +51,7 @@
             </a>
             {% else %}
             <div
-                style="width:100%; background:#FEF2F2; color:#DC2626; padding:16px 24px; border-radius:16px; font-size:14px; font-weight:600; border:1px solid #FECACA;">
+                style="width:100%; max-width:320px; margin:0 auto; background:#FEF2F2; color:#DC2626; padding:16px 24px; border-radius:16px; font-size:14px; font-weight:600; border:1px solid #FECACA; text-align:center;">
                 APK no disponible aún. Contacta al administrador.
             </div>
             {% endif %}

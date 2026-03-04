@@ -89,9 +89,13 @@
                         </span>
                         {% else %}
                         {% with tiempo_restante=ticket.tiempo_restante_sla %}
-                        {% if tiempo_restante.total_seconds < 7200 %} <span
-                            class="text-xs font-bold text-amber-500 flex items-center">
-                            <i class="ph-bold ph-clock mr-1"></i> Por vencer
+                        {% if tiempo_restante == None %}
+                            <span class="text-xs font-bold text-green-500 flex items-center">
+                                <i class="ph-bold ph-check-circle mr-1"></i> Completado
+                            </span>
+                        {% elif tiempo_restante.total_seconds < 7200 %}
+                            <span class="text-xs font-bold text-amber-500 flex items-center">
+                                <i class="ph-bold ph-clock mr-1"></i> Por vencer
                             </span>
                             {% else %}
                             <span class="text-xs font-bold text-green-500 flex items-center">
