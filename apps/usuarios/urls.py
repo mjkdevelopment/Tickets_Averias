@@ -16,6 +16,7 @@ urlpatterns = [
     path("usuarios/crear/", views.usuario_crear, name="usuario_crear"),
     path("usuarios/<int:pk>/", views.usuario_detalle, name="usuario_detalle"),
     path("usuarios/<int:pk>/editar/", views.usuario_editar, name="usuario_editar"),
+    path("usuarios/<int:pk>/password/", views.usuario_cambiar_password, name="usuario_cambiar_password"),
 
     # Gestión de dispositivos
     path("dispositivos/", views.dispositivos_lista, name="dispositivos_lista"),

@@ -1,13 +1,20 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:file_picker/file_picker.dart';
 import 'wizard.dart';
 import 'waiting_room.dart';
 
@@ -82,7 +89,7 @@ const String kPanelBaseUrl =
     'https://majestiksolutions.pythonanywhere.com/tickets/';
 
 /// Versión actual de la app (debe coincidir con config/app_version.py en el server)
-const String kAppVersion = '1.0.3';
+const String kAppVersion = '1.0.8';
 
 /// URL de la API de versión
 const String kVersionApiUrl =
@@ -90,6 +97,21 @@ const String kVersionApiUrl =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Modo inmersivo: oculta completamente la barra de navegación Android
+  // El usuario puede deslizar hacia arriba para verla temporalmente
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.immersiveSticky,
+  );
+
+  // Barras de sistema transparentes para experiencia inmersiva
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: Colors.transparent,
+  ));
 
   // Inicializar Firebase
   await Firebase.initializeApp();
@@ -186,7 +208,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _checkForUpdate() async {
     try {
       final response = await http.get(Uri.parse(kVersionApiUrl)).timeout(
-        const Duration(seconds: 5),
+        const Duration(seconds: 15),
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -277,57 +299,233 @@ class WebViewScreen extends StatefulWidget {
   State<WebViewScreen> createState() => _WebViewScreenState();
 }
 
-class _WebViewScreenState extends State<WebViewScreen> {
+class _WebViewScreenState extends State<WebViewScreen> with WidgetsBindingObserver {
   late final WebViewController _controller;
   bool _isLoading = true;
+
+  /// CSS que se inyecta en el WebView para deshabilitar efectos pesados
+  /// y mejorar el rendimiento en dispositivos Android de gama media/baja.
+  static const String _perfCss = '''(function(){
+    var b=document.querySelector('.fixed.pointer-events-none');
+    if(b)b.style.display='none';
+    if(document.getElementById('_wvp'))return;
+    var s=document.createElement('style');
+    s.id='_wvp';
+    s.textContent=
+      '.glass{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,0.97)!important}'
+      +'.neon-snake::before{display:none!important}'
+      +'.alert-pulse,.badge-pulse{animation:none!important}'
+      +'.animate-fade-in-up{animation:none!important;opacity:1!important}'
+      +'.card-hover,.card-hover *{transition:none!important}'
+      +'.flex.overflow-x-auto{flex-wrap:wrap!important;overflow-x:visible!important;overflow:visible!important}'
+      +'.mix-blend-multiply{mix-blend-mode:normal!important;filter:none!important}'
+      +'.blur-3xl{filter:none!important;-webkit-filter:none!important}'
+      +'.filter{filter:none!important;-webkit-filter:none!important}'
+      +'nav.absolute{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,0.98)!important}';
+    document.head.appendChild(s);
+    document.documentElement.style.webkitTapHighlightColor='transparent';
+  })();''';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..enableZoom(false)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (_) {
-            setState(() {
-              _isLoading = true;
-            });
+            if (mounted) setState(() { _isLoading = true; });
           },
           onPageFinished: (_) {
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) setState(() { _isLoading = false; });
+            // Inyectar CSS ligero para rendimiento móvil
+            _controller.runJavaScript(_perfCss);
+            // Re-aplicar modo inmersivo después de cada carga de página
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
           },
         ),
       )
       ..loadRequest(Uri.parse(widget.initialUrl));
+
+    // Habilitar selección de archivos (input type="file") en Android WebView
+    if (_controller.platform is AndroidWebViewController) {
+      (_controller.platform as AndroidWebViewController).setOnShowFileSelector(
+        (FileSelectorParams params) async {
+          try {
+            // Determinar si acepta solo imágenes
+            final acceptsImages = params.acceptTypes.any(
+              (t) => t.contains('image'),
+            );
+
+            final result = await FilePicker.platform.pickFiles(
+              type: acceptsImages ? FileType.image : FileType.any,
+              allowMultiple: params.mode == FileSelectorMode.openMultiple,
+            );
+
+            if (result == null || result.files.isEmpty) return [];
+
+            return result.files
+                .where((f) => f.path != null)
+                .map((f) => Uri.file(f.path!).toString())
+                .toList();
+          } catch (e) {
+            debugPrint('Error al seleccionar archivo: $e');
+            return [];
+          }
+        },
+      );
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-aplicar modo inmersivo al volver del fondo
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Safely avoid the native status bar at top (iOS/Android notch) and bottom nav
-          SafeArea(
-            child: WebViewWidget(controller: _controller),
-          ),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(color: Color(0xFFF97316)),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Edge-to-edge: SafeArea solo en top para evitar overlap con notch/status bar
+            SafeArea(
+              bottom: false, // Permitir contenido hasta el borde inferior
+              child: WebViewWidget(controller: _controller),
             ),
-        ],
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(color: Color(0xFFF97316)),
+              ),
+            // Indicador de versión no invasivo
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 4,
+              right: 8,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0x33000000), // negro 20%
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'v$kAppVersion',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Color(0x99FFFFFF), // blanco 60%
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Pantalla de actualización obligatoria
-class UpdateRequiredScreen extends StatelessWidget {
+/// Pantalla de actualización obligatoria con descarga y barra de progreso
+class UpdateRequiredScreen extends StatefulWidget {
   final String downloadUrl;
 
   const UpdateRequiredScreen({super.key, required this.downloadUrl});
+
+  @override
+  State<UpdateRequiredScreen> createState() => _UpdateRequiredScreenState();
+}
+
+class _UpdateRequiredScreenState extends State<UpdateRequiredScreen> {
+  bool _isDownloading = false;
+  double _progress = 0.0;
+  String _statusText = '';
+  String? _errorText;
+
+  Future<void> _downloadAndInstall() async {
+    setState(() {
+      _isDownloading = true;
+      _progress = 0.0;
+      _statusText = 'Iniciando descarga...';
+      _errorText = null;
+    });
+
+    try {
+      // Usar HTTP en vez de HTTPS para evitar problemas de descarga en Android
+      String url = widget.downloadUrl;
+      if (url.startsWith('https://')) {
+        url = url.replaceFirst('https://', 'http://');
+      }
+
+      // Obtener directorio temporal
+      final dir = await getTemporaryDirectory();
+      final filePath = '${dir.path}/mjk_tickets.apk';
+
+      // Eliminar APK anterior si existe
+      final oldFile = File(filePath);
+      if (await oldFile.exists()) {
+        await oldFile.delete();
+      }
+
+      // Descargar con Dio y progreso
+      final dio = Dio();
+      await dio.download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total > 0 && mounted) {
+            setState(() {
+              _progress = received / total;
+              final mb = (received / 1024 / 1024).toStringAsFixed(1);
+              final totalMb = (total / 1024 / 1024).toStringAsFixed(1);
+              _statusText = 'Descargando $mb / $totalMb MB';
+            });
+          }
+        },
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _statusText = 'Descarga completa. Abriendo instalador...';
+        _progress = 1.0;
+      });
+
+      // Abrir el APK para instalar
+      final result = await OpenFilex.open(filePath, type: 'application/vnd.android.package-archive');
+
+      if (result.type != ResultType.done && mounted) {
+        setState(() {
+          _errorText = 'No se pudo abrir el instalador. Ve a Archivos y abre mjk_tickets.apk manualmente.';
+          _isDownloading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorText = 'Error al descargar: $e';
+        _isDownloading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -356,16 +554,16 @@ class UpdateRequiredScreen extends StatelessWidget {
                         colors: [Color(0xFFF97316), Color(0xFFEA580C)],
                       ),
                       borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
-                          color: const Color(0xFFF97316).withOpacity(0.3),
+                          color: Color(0x4DF97316),
                           blurRadius: 24,
-                          offset: const Offset(0, 8),
+                          offset: Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.system_update,
+                    child: Icon(
+                      _isDownloading ? Icons.downloading : Icons.system_update,
                       size: 44,
                       color: Colors.white,
                     ),
@@ -386,9 +584,11 @@ class UpdateRequiredScreen extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   // Description
-                  const Text(
-                    'Hay una nueva versión de la app disponible. Por favor actualiza para continuar.',
-                    style: TextStyle(
+                  Text(
+                    _isDownloading
+                        ? _statusText
+                        : 'Hay una nueva versión de la app disponible. Por favor actualiza para continuar.',
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF78716C),
@@ -400,8 +600,7 @@ class UpdateRequiredScreen extends StatelessWidget {
 
                   // Version info
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF7ED),
                       border: Border.all(color: const Color(0xFFFDBA74)),
@@ -416,40 +615,75 @@ class UpdateRequiredScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 36),
+                  const SizedBox(height: 24),
 
-                  // Download button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        final uri = Uri.parse(downloadUrl);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri,
-                              mode: LaunchMode.externalApplication);
-                        }
-                      },
-                      icon: const Icon(Icons.download, color: Colors.white),
-                      label: const Text(
-                        'Descargar Actualización',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF97316),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 4,
-                        shadowColor:
-                            const Color(0xFFF97316).withOpacity(0.3),
+                  // Barra de progreso
+                  if (_isDownloading) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: _progress,
+                        minHeight: 12,
+                        backgroundColor: const Color(0xFFFFEDD5),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF97316)),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${(_progress * 100).toStringAsFixed(0)}%',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFFF97316),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Error message
+                  if (_errorText != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFECACA)),
+                      ),
+                      child: Text(
+                        _errorText!,
+                        style: const TextStyle(color: Color(0xFFB91C1C), fontSize: 13, fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Download button
+                  if (!_isDownloading || _errorText != null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _downloadAndInstall,
+                        icon: const Icon(Icons.download, color: Colors.white),
+                        label: Text(
+                          _errorText != null ? 'Reintentar Descarga' : 'Descargar Actualización',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF97316),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 4,
+                          shadowColor: const Color(0x4DF97316),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
