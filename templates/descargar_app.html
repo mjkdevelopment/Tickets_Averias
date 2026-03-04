@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descargar App - Botija Tickets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body style="margin:0;">
+    <div
+        style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 50%, #FED7AA 100%); padding:24px; font-family:'Outfit',system-ui,sans-serif;">
+
+        <div
+            style="max-width:420px; width:100%; background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); border-radius:24px; padding:48px 32px; text-align:center; box-shadow:0 20px 60px rgba(249,115,22,0.15); border:1px solid rgba(255,255,255,0.6);">
+
+            <!-- Logo -->
+            <div
+                style="width:80px; height:80px; background:linear-gradient(135deg,#F97316,#EA580C); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 24px; box-shadow:0 8px 24px rgba(249,115,22,0.3);">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                    <path
+                        d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z" />
+                </svg>
+            </div>
+
+            <h1 style="font-size:28px; font-weight:800; color:#1C1917; margin:0 0 8px; letter-spacing:-0.5px;">Botija
+                Tickets</h1>
+            <p style="color:#78716C; font-size:14px; margin:0 0 32px; font-weight:500;">App móvil para técnicos y
+                operadores
+            </p>
+
+            <!-- Version badge -->
+            <div
+                style="display:inline-flex; align-items:center; background:#FFF7ED; border:1px solid #FDBA74; border-radius:999px; padding:6px 16px; margin-bottom:32px;">
+                <span style="width:8px; height:8px; background:#22C55E; border-radius:50%; margin-right:8px;"></span>
+                <span
+                    style="font-size:12px; font-weight:700; color:#9A3412; text-transform:uppercase; letter-spacing:0.05em;">Versión
+                    {{ version }}</span>
+            </div>
+
+            <!-- Download button -->
+            {% if apk_available %}
+            <a href="{{ download_url }}"
+                style="display:flex; align-items:center; justify-content:center; width:100%; background:linear-gradient(135deg,#F97316,#EA580C); color:white; padding:16px 24px; border-radius:16px; font-size:16px; font-weight:700; text-decoration:none; box-shadow:0 8px 24px rgba(249,115,22,0.3); transition:all 0.2s; border:1px solid rgba(255,255,255,0.2);"
+                onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right:10px;">
+                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                </svg>
+                Descargar APK
+            </a>
+            {% else %}
+            <div
+                style="width:100%; background:#FEF2F2; color:#DC2626; padding:16px 24px; border-radius:16px; font-size:14px; font-weight:600; border:1px solid #FECACA;">
+                APK no disponible aún. Contacta al administrador.
+            </div>
+            {% endif %}
+
+            <p style="color:#A8A29E; font-size:11px; margin-top:24px; font-weight:500;">Solo compatible con Android 8.0+
+            </p>
+
+            <!-- Instructions -->
+            <div style="text-align:left; margin-top:32px; padding-top:24px; border-top:1px dashed #D6D3D1;">
+                <p
+                    style="font-size:12px; font-weight:700; color:#57534E; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 12px;">
+                    Instrucciones</p>
+                <ol style="margin:0; padding:0 0 0 20px; color:#78716C; font-size:13px; line-height:2;">
+                    <li>Descarga el archivo APK</li>
+                    <li>Abre el archivo descargado</li>
+                    <li>Permite instalar de "fuentes desconocidas" si te lo pide</li>
+                    <li>Instala y abre la app</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
