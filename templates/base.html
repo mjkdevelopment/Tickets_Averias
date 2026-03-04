@@ -250,6 +250,11 @@
                 <i class="ph ph-users text-xl mr-3 group-hover:text-primary transition-colors"></i>
                 <span class="tracking-wide">Usuarios</span>
             </a>
+            <a href="{% url 'dispositivos_lista' %}"
+                class="flex items-center px-4 py-3 {% if 'dispositivo' in request.resolver_match.url_name %}bg-gradient-to-r from-primary to-primary_hover text-white shadow-lg shadow-primary/25{% else %}text-textmuted hover:text-primary hover:bg-orange-50{% endif %} rounded-xl transition-all group font-medium">
+                <i class="ph ph-device-mobile text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Dispositivos</span>
+            </a>
             <a href="{% url 'reportes_dashboard' %}"
                 class="flex items-center px-4 py-3 {% if 'reporte' in request.resolver_match.url_name %}bg-gradient-to-r from-primary to-primary_hover text-white shadow-lg shadow-primary/25{% else %}text-textmuted hover:text-primary hover:bg-orange-50{% endif %} rounded-xl transition-all group font-medium">
                 <i class="ph ph-chart-line-up text-xl mr-3 group-hover:text-primary transition-colors"></i>

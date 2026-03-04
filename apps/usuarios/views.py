@@ -179,3 +179,62 @@ def usuario_editar(request, pk):
         "usuarios/usuario_form.html",
         {"form": form, "titulo": "Editar usuario"},
     )
+
+
+@login_required
+def dispositivos_lista(request):
+    """
+    Lista de dispositivos registrados (solo admin).
+    Permite aprobar o rechazar solicitudes de enrollment.
+    """
+    if not request.user.es_admin():
+        messages.error(request, "No tienes permisos para gestionar dispositivos")
+        return redirect("dashboard")
+
+    from .models import DispositivoNotificacion
+
+    dispositivos = (
+        DispositivoNotificacion.objects
+        .select_related("usuario")
+        .order_by("activo", "-fecha_registro")
+    )
+
+    pendientes = dispositivos.filter(activo=False).count()
+    aprobados = dispositivos.filter(activo=True).count()
+
+    return render(request, "usuarios/dispositivos_lista.html", {
+        "dispositivos": dispositivos,
+        "pendientes": pendientes,
+        "aprobados": aprobados,
+    })
+
+
+@login_required
+def dispositivo_toggle(request, pk):
+    """
+    Aprobar o rechazar un dispositivo (solo admin, POST).
+    """
+    if not request.user.es_admin():
+        messages.error(request, "No tienes permisos")
+        return redirect("dashboard")
+
+    from .models import DispositivoNotificacion
+
+    dispositivo = get_object_or_404(DispositivoNotificacion, pk=pk)
+
+    if request.method == "POST":
+        accion = request.POST.get("accion", "")
+        if accion == "aprobar":
+            dispositivo.activo = True
+            dispositivo.save()
+            messages.success(request, f"Dispositivo de {dispositivo.usuario.username} aprobado.")
+        elif accion == "rechazar":
+            dispositivo.activo = False
+            dispositivo.save()
+            messages.success(request, f"Dispositivo de {dispositivo.usuario.username} desactivado.")
+        elif accion == "eliminar":
+            username = dispositivo.usuario.username
+            dispositivo.delete()
+            messages.success(request, f"Dispositivo de {username} eliminado.")
+
+    return redirect("dispositivos_lista")
