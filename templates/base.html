@@ -87,18 +87,25 @@
             animation: snakeRun 8s linear infinite;
             z-index: -2;
             translate: -50% -50%;
+            will-change: transform;
         }
 
         .neon-snake::after {
             content: '';
             position: absolute;
             inset: 2px;
-            /* Grosor del borde */
             background: #FFFFFF;
-            /* Fondo solido interior para ocultar el bloque central del neón */
             border-radius: calc(1rem - 2px);
             z-index: -1;
             box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        /* En pantallas pequeñas (móvil/WebView): desactivar snake para rendimiento */
+        @media (max-width: 768px) {
+            .neon-snake::before {
+                animation: none !important;
+                background: conic-gradient(from 45deg, transparent 60%, #F97316, #FBBF24);
+            }
         }
 
         @keyframes snakeRun {
@@ -204,14 +211,14 @@
 
 <body class="antialiased h-screen flex relative selection:bg-primary/30 selection:text-primary">
 
-    <!-- Animated Background Blobs -->
+    <!-- Background Blobs (animated on desktop, static on mobile for performance) -->
     <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div
-            class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob">
+            class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 md:animate-blob">
         </div>
-        <div class="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
+        <div class="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 md:animate-blob"
             style="animation-delay: 2s;"></div>
-        <div class="absolute bottom-[-20%] left-[20%] w-[45rem] h-[45rem] bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
+        <div class="absolute bottom-[-20%] left-[20%] w-[45rem] h-[45rem] bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 md:animate-blob"
             style="animation-delay: 4s;"></div>
     </div>
 
@@ -326,10 +333,12 @@
             </div>
             <div class="flex items-center gap-3">
                 <!-- Campana mobile -->
-                <button onclick="toggleNotifDropdown()" class="relative p-1 text-textmuted hover:text-primary transition-colors">
-                    <i class="ph ph-bell text-2xl"></i>
-                    <span id="notif-badge-mobile" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 border-2 border-stone-50 badge-pulse">0</span>
-                </button>
+                <div class="relative" id="notif-bell-mobile">
+                    <button onclick="toggleNotifDropdownMobile()" class="relative p-1 text-textmuted hover:text-primary transition-colors">
+                        <i class="ph ph-bell text-2xl"></i>
+                        <span id="notif-badge-mobile" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 border-2 border-stone-50 badge-pulse">0</span>
+                    </button>
+                </div>
                 <div class="relative">
                     <div
                         class="w-10 h-10 rounded-full border-2 border-white shadow-md bg-orange-200 text-orange-600 flex items-center justify-center font-bold">
@@ -338,6 +347,19 @@
                 </div>
             </div>
         </header>
+
+        <!-- MOBILE NOTIFICATION DROPDOWN (fuera del header para posición absoluta correcta) -->
+        <div id="notif-dropdown-mobile" class="hidden md:hidden fixed inset-x-4 top-[90px] z-[100] bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden max-h-[70vh]">
+            <div class="px-4 py-3 border-b border-stone-200/50 flex justify-between items-center bg-orange-50/60">
+                <span class="font-bold text-sm text-textmain">Notificaciones</span>
+                <button onclick="marcarTodasLeidas(); toggleNotifDropdownMobile();" class="text-[10px] font-bold text-primary hover:text-primary_hover uppercase tracking-wider">Marcar leídas</button>
+            </div>
+            <div id="notif-list-mobile" class="overflow-y-auto max-h-[60vh] divide-y divide-stone-100">
+                <div class="px-4 py-8 text-center text-textmuted text-sm"><i class="ph-thin ph-bell-slash text-3xl block mb-2 text-stone-300"></i>Sin notificaciones</div>
+            </div>
+        </div>
+        <!-- Overlay para cerrar dropdown mobile al tocar fuera -->
+        <div id="notif-overlay-mobile" class="hidden md:hidden fixed inset-0 z-[99] bg-black/20" onclick="toggleNotifDropdownMobile()"></div>
         {% endif %}
 
         <!-- SCROLLABLE PAGE CONTENT -->
@@ -420,8 +442,9 @@
     <script>
     // ===== NOTIFICATION SYSTEM =====
     const NOTIF_POLL_MS = 15000; // cada 15 segundos
-    let lastNotifCount = 0;
+    let lastNotifCount = -1; // -1 = sentinel: primer poll no suena (evita sonido doble con push Android)
     let notifDropdownOpen = false;
+    let notifDropdownMobileOpen = false;
     let audioCtx = null;
 
     function playNotifSound() {
@@ -470,11 +493,21 @@
 
     function toggleNotifDropdown() {
         const dd = document.getElementById('notif-dropdown');
+        if (!dd) return;
         notifDropdownOpen = !notifDropdownOpen;
         dd.classList.toggle('hidden', !notifDropdownOpen);
     }
 
-    // Cerrar dropdown al hacer clic fuera
+    function toggleNotifDropdownMobile() {
+        const dd = document.getElementById('notif-dropdown-mobile');
+        const ov = document.getElementById('notif-overlay-mobile');
+        if (!dd) return;
+        notifDropdownMobileOpen = !notifDropdownMobileOpen;
+        dd.classList.toggle('hidden', !notifDropdownMobileOpen);
+        if (ov) ov.classList.toggle('hidden', !notifDropdownMobileOpen);
+    }
+
+    // Cerrar dropdown desktop al hacer clic fuera
     document.addEventListener('click', function(e) {
         const bell = document.getElementById('notif-bell-desktop');
         const dd = document.getElementById('notif-dropdown');
@@ -498,27 +531,30 @@
     }
 
     function renderNotifList(items) {
-        const list = document.getElementById('notif-list');
-        if (!list) return;
+        // Renderizar en ambos dropdowns (desktop + mobile)
+        ['notif-list', 'notif-list-mobile'].forEach(id => {
+            const list = document.getElementById(id);
+            if (!list) return;
 
-        if (items.length === 0) {
-            list.innerHTML = '<div class="px-4 py-8 text-center text-textmuted text-sm"><i class="ph-thin ph-bell-slash text-3xl block mb-2 text-stone-300"></i>Sin notificaciones</div>';
-            return;
-        }
+            if (items.length === 0) {
+                list.innerHTML = '<div class="px-4 py-8 text-center text-textmuted text-sm"><i class="ph-thin ph-bell-slash text-3xl block mb-2 text-stone-300"></i>Sin notificaciones</div>';
+                return;
+            }
 
-        list.innerHTML = items.map(n => `
-            <a href="/tickets/${n.ticket_id}/" onclick="marcarTicketLeido(${n.ticket_id})" class="block px-4 py-3 hover:bg-orange-50/50 transition-colors">
-                <div class="flex gap-3 items-start">
-                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="ph-fill ph-chat-circle-dots text-sm"></i>
+            list.innerHTML = items.map(n => `
+                <a href="/tickets/${n.ticket_id}/" onclick="marcarTicketLeido(${n.ticket_id})" class="block px-4 py-3 hover:bg-orange-50/50 transition-colors">
+                    <div class="flex gap-3 items-start">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="ph-fill ph-chat-circle-dots text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold text-textmain leading-snug line-clamp-2">${n.mensaje}</p>
+                            <p class="text-[10px] text-textmuted mt-1">${n.ticket_numero} · ${n.fecha}</p>
+                        </div>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold text-textmain leading-snug line-clamp-2">${n.mensaje}</p>
-                        <p class="text-[10px] text-textmuted mt-1">${n.ticket_numero} · ${n.fecha}</p>
-                    </div>
-                </div>
-            </a>
-        `).join('');
+                </a>
+            `).join('');
+        });
     }
 
     async function pollNotificaciones() {
@@ -530,11 +566,13 @@
             updateBadges(data.count);
             renderNotifList(data.items);
 
-            // Sonar si hay nuevas notificaciones
-            if (data.count > lastNotifCount && lastNotifCount >= 0) {
+            // Sonar SOLO si hay nuevas notificaciones desde el último poll conocido
+            // lastNotifCount === -1 en el primer poll → no suena (evita duplicar sonido push Android)
+            if (lastNotifCount > 0 && data.count > lastNotifCount) {
                 playNotifSound();
             }
-            lastNotifCount = data.count;
+            if (lastNotifCount === -1) lastNotifCount = data.count; // establecer línea base
+            else lastNotifCount = data.count;
         } catch(e) { /* silent */ }
     }
 
