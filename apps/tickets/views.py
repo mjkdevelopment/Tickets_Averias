@@ -20,7 +20,8 @@ def tickets_lista(request):
     - ADMIN:
         puede ver abiertos / cerrados / todos (filtro ?ver=...)
     - DIGITADOR:
-        igual que admin pero solo de los que él creó
+        ve TODOS los tickets (propios y de otros digitadores)
+        con filtro por estado (abiertos / cerrados / todos)
     - TÉCNICO:
         SOLO ve tickets ABIERTOS:
           * los que tiene asignados
@@ -35,9 +36,9 @@ def tickets_lista(request):
 
     # --- Filtro por rol ---
     if usuario.es_digitador():
-        tickets = tickets.filter(creado_por=usuario)
-
-        # Digitador también puede filtrar por estado
+        # Digitador ve TODOS los tickets (propios y de otros digitadores)
+        # para poder consultar cualquier ticket si le preguntan.
+        # Filtra solo por estado (abiertos / cerrados / todos)
         if ver == 'abiertos':
             tickets = tickets.exclude(
                 estado__in=['RESUELTO', 'CERRADO', 'CANCELADO']

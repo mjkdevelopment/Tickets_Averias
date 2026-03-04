@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from .forms import LoginForm, UsuarioCreateForm, UsuarioUpdateForm
+from .models import DispositivoNotificacion
 
 Usuario = get_user_model()
 
@@ -48,7 +49,7 @@ def dashboard(request):
     Dashboard principal.
 
     - ADMIN: ve todos los tickets abiertos.
-    - DIGITADOR: ve sus tickets abiertos.
+    - DIGITADOR: ve todos los tickets abiertos (propios y de otros).
     - TÉCNICO: ve sus tickets asignados abiertos + (si aplica) tickets sin asignar de sus especialidades.
     """
     from apps.tickets.models import Ticket  # import local para evitar ciclos raros
@@ -69,7 +70,8 @@ def dashboard(request):
 
     if not usuario.es_admin():
         if usuario.rol == 'DIGITADOR':
-            qs = qs.filter(creado_por=usuario)
+            # Digitador ve TODOS los tickets abiertos (propios y de otros)
+            pass
 
         elif usuario.rol == 'TECNICO':
             cats = usuario.especialidades.all()
@@ -184,57 +186,33 @@ def usuario_editar(request, pk):
 @login_required
 def dispositivos_lista(request):
     """
-    Lista de dispositivos registrados (solo admin).
-    Permite aprobar o rechazar solicitudes de enrollment.
+    Lista de dispositivos de notificación (solo admin).
     """
     if not request.user.es_admin():
-        messages.error(request, "No tienes permisos para gestionar dispositivos")
+        messages.error(request, "No tienes permisos para ver dispositivos")
         return redirect("dashboard")
-
-    from .models import DispositivoNotificacion
 
     dispositivos = (
         DispositivoNotificacion.objects
-        .select_related("usuario")
-        .order_by("activo", "-fecha_registro")
+        .select_related('usuario')
+        .order_by('-fecha_ultimo_uso')
     )
-
-    pendientes = dispositivos.filter(activo=False).count()
-    aprobados = dispositivos.filter(activo=True).count()
-
-    return render(request, "usuarios/dispositivos_lista.html", {
-        "dispositivos": dispositivos,
-        "pendientes": pendientes,
-        "aprobados": aprobados,
-    })
+    return render(request, "usuarios/dispositivos_lista.html", {"dispositivos": dispositivos})
 
 
 @login_required
 def dispositivo_toggle(request, pk):
     """
-    Aprobar o rechazar un dispositivo (solo admin, POST).
+    Activar/desactivar un dispositivo de notificación (solo admin).
     """
     if not request.user.es_admin():
-        messages.error(request, "No tienes permisos")
+        messages.error(request, "No tienes permisos para gestionar dispositivos")
         return redirect("dashboard")
 
-    from .models import DispositivoNotificacion
-
     dispositivo = get_object_or_404(DispositivoNotificacion, pk=pk)
+    dispositivo.activo = not dispositivo.activo
+    dispositivo.save(update_fields=['activo'])
 
-    if request.method == "POST":
-        accion = request.POST.get("accion", "")
-        if accion == "aprobar":
-            dispositivo.activo = True
-            dispositivo.save()
-            messages.success(request, f"Dispositivo de {dispositivo.usuario.username} aprobado.")
-        elif accion == "rechazar":
-            dispositivo.activo = False
-            dispositivo.save()
-            messages.success(request, f"Dispositivo de {dispositivo.usuario.username} desactivado.")
-        elif accion == "eliminar":
-            username = dispositivo.usuario.username
-            dispositivo.delete()
-            messages.success(request, f"Dispositivo de {username} eliminado.")
-
+    estado = "activado" if dispositivo.activo else "desactivado"
+    messages.success(request, f"Dispositivo {estado} correctamente")
     return redirect("dispositivos_lista")
