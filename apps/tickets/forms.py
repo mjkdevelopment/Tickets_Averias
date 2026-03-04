@@ -125,7 +125,7 @@ class TicketEstadoForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ["estado", "solucion", "foto_reparacion", "asignado_a"]
+        fields = ["estado", "solucion", "asignado_a"]
         widgets = {
             "solucion": forms.Textarea(attrs={"rows": 3}),
         }
@@ -140,10 +140,6 @@ class TicketEstadoForm(forms.ModelForm):
         # Estilos Bootstrap
         self.fields["estado"].widget.attrs.update({"class": "form-select"})
         self.fields["solucion"].widget.attrs.update({"class": "form-control"})
-        if "foto_reparacion" in self.fields:
-            self.fields["foto_reparacion"].widget.attrs.update(
-                {"class": "form-control"}
-            )
 
         # Configurar el combo de técnicos
         self.fields["asignado_a"].widget.attrs.update({"class": "form-select"})

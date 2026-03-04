@@ -244,6 +244,15 @@ def ticket_detalle(request, pk):
                     ticket_obj.asignado_a = tecnico_original
 
                 ticket_obj.save()
+
+                # Guardar imágenes adjuntas del técnico
+                for archivo in request.FILES.getlist('imagenes_estado'):
+                    ImagenTicket.objects.create(
+                        ticket=ticket_obj,
+                        imagen=archivo,
+                        subida_por=usuario,
+                    )
+
                 messages.success(request, "Ticket actualizado correctamente.")
                 return redirect("ticket_detalle", pk=ticket_obj.pk)
 

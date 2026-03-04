@@ -159,14 +159,16 @@
                     <div class="form-group">
                         <label
                             class="block text-xs font-bold text-textmuted uppercase tracking-widest mb-2 flex items-center">
-                            <i class="ph-bold ph-camera mr-1 text-primary"></i> Foto reparación (opcional)
+                            <i class="ph-bold ph-camera mr-1 text-primary"></i> Adjuntar imágenes (opcional)
                         </label>
-                        <div class="mb-2">
-                            {{ estado_form.foto_reparacion }}
+                        <div id="drop-zone-estado" class="border-2 border-dashed border-stone-300 rounded-xl p-4 text-center cursor-pointer hover:border-primary hover:bg-orange-50/30 transition-colors">
+                            <i class="ph-bold ph-cloud-arrow-up text-2xl text-stone-400 mb-1"></i>
+                            <p class="text-xs text-stone-500 font-medium">Arrastra imágenes aquí, haz clic o pega con Ctrl+V</p>
+                            <input type="file" name="imagenes_estado" multiple accept="image/*"
+                                id="id_imagenes_estado"
+                                class="hidden" />
                         </div>
-                        {% if estado_form.foto_reparacion.errors %}
-                        <p class="text-red-500 text-xs mt-1">{{ estado_form.foto_reparacion.errors.0 }}</p>
-                        {% endif %}
+                        <div id="img-preview-estado" class="grid grid-cols-3 gap-2 mt-3"></div>
                     </div>
 
                     {% if user.es_admin %}
@@ -485,6 +487,105 @@
         if (!textarea.contains(e.target) && !dropdown.contains(e.target)) {
             dropdown.classList.add('hidden');
             mentionMode = false;
+        }
+    });
+})();
+</script>
+
+<!-- JS para zona de imágenes del estado (técnico) con click + drag & drop + paste -->
+<script>
+(function() {
+    const input = document.getElementById('id_imagenes_estado');
+    const dropZone = document.getElementById('drop-zone-estado');
+    const preview = document.getElementById('img-preview-estado');
+    if (!input || !dropZone || !preview) return;
+
+    let collectedFiles = new DataTransfer();
+
+    function updatePreview() {
+        preview.innerHTML = '';
+        Array.from(collectedFiles.files).forEach((file, idx) => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const div = document.createElement('div');
+                div.className = 'relative group';
+                div.innerHTML = `
+                    <img src="${e.target.result}" class="w-full h-20 object-cover rounded-lg border border-stone-200 shadow-sm" />
+                    <button type="button" data-idx="${idx}"
+                        class="remove-img absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow-md hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100">
+                        ✕
+                    </button>
+                    <span class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[9px] text-center py-0.5 rounded-b-lg truncate px-1">${file.name}</span>`;
+                preview.appendChild(div);
+                div.querySelector('.remove-img').addEventListener('click', function() {
+                    removeFile(parseInt(this.dataset.idx));
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function addFiles(files) {
+        Array.from(files).forEach(f => {
+            if (f.type.startsWith('image/')) collectedFiles.items.add(f);
+        });
+        input.files = collectedFiles.files;
+        updatePreview();
+    }
+
+    function removeFile(idx) {
+        const dt = new DataTransfer();
+        Array.from(collectedFiles.files).forEach((f, i) => {
+            if (i !== idx) dt.items.add(f);
+        });
+        collectedFiles = dt;
+        input.files = collectedFiles.files;
+        updatePreview();
+    }
+
+    dropZone.addEventListener('click', (e) => {
+        if (e.target === input) return;
+        input.click();
+    });
+
+    input.addEventListener('change', function() {
+        addFiles(this.files);
+    });
+
+    ['dragenter', 'dragover'].forEach(ev => {
+        dropZone.addEventListener(ev, (e) => {
+            e.preventDefault(); e.stopPropagation();
+            dropZone.classList.add('border-primary', 'bg-orange-50/50');
+        });
+    });
+    ['dragleave', 'drop'].forEach(ev => {
+        dropZone.addEventListener(ev, (e) => {
+            e.preventDefault(); e.stopPropagation();
+            dropZone.classList.remove('border-primary', 'bg-orange-50/50');
+        });
+    });
+    dropZone.addEventListener('drop', (e) => {
+        addFiles(e.dataTransfer.files);
+    });
+
+    // Paste — solo si no hay textarea enfocado (para no interferir con los comentarios)
+    document.addEventListener('paste', (e) => {
+        if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        const imgs = [];
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) imgs.push(file);
+            }
+        }
+        if (imgs.length > 0) {
+            e.preventDefault();
+            addFiles(imgs);
+            dropZone.classList.add('border-green-500', 'bg-green-50/50');
+            setTimeout(() => dropZone.classList.remove('border-green-500', 'bg-green-50/50'), 600);
         }
     });
 })();

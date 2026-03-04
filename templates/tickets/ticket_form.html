@@ -95,22 +95,14 @@
                 <label class="flex items-center">
                     <i class="ph-bold ph-image mr-1.5 text-primary text-lg"></i> Adjuntar imágenes (opcional)
                 </label>
-                <div class="relative">
+                <div id="drop-zone-crear" class="border-2 border-dashed border-stone-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary hover:bg-orange-50/30 transition-colors">
+                    <i class="ph-bold ph-cloud-arrow-up text-3xl text-stone-400 mb-2"></i>
+                    <p class="text-sm text-stone-500 font-medium">Arrastra imágenes aquí o haz clic para seleccionar</p>
+                    <p class="text-[11px] text-stone-400 mt-1">También puedes pegar con <kbd class="bg-stone-200 px-1.5 py-0.5 rounded text-[10px] font-mono">Ctrl+V</kbd></p>
                     <input type="file" name="imagenes" multiple accept="image/*"
                         id="id_imagenes"
-                        class="block w-full text-sm text-stone-500
-                            file:mr-4 file:py-2.5 file:px-4
-                            file:rounded-xl file:border file:border-stone-200
-                            file:text-sm file:font-bold
-                            file:bg-white file:text-textmain
-                            hover:file:bg-stone-50
-                            file:transition-colors file:cursor-pointer
-                            cursor-pointer" />
+                        class="hidden" />
                 </div>
-                <p class="text-[11px] text-stone-500 mt-2 flex items-center">
-                    <i class="ph-fill ph-info mr-1"></i>
-                    Puedes seleccionar varias fotos: screenshots, fotos de WhatsApp, evidencias, etc.
-                </p>
                 <!-- Preview de imágenes seleccionadas -->
                 <div id="img-preview" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-3"></div>
             </div>
@@ -176,25 +168,109 @@
 </style>
 
 <script>
-    // Preview de imágenes seleccionadas
-    const inputImg = document.getElementById('id_imagenes');
+(function() {
+    // ===== SISTEMA DE IMÁGENES: Click + Drag & Drop + Paste =====
+    const input = document.getElementById('id_imagenes');
+    const dropZone = document.getElementById('drop-zone-crear');
     const preview = document.getElementById('img-preview');
-    if (inputImg) {
-        inputImg.addEventListener('change', function () {
-            preview.innerHTML = '';
-            Array.from(this.files).forEach(file => {
-                if (!file.type.startsWith('image/')) return;
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const div = document.createElement('div');
-                    div.className = 'relative group';
-                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-20 object-cover rounded-lg border border-stone-200 shadow-sm" />
-                        <span class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[9px] text-center py-0.5 rounded-b-lg truncate px-1">${file.name}</span>`;
-                    preview.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
+    if (!input || !dropZone || !preview) return;
+
+    // DataTransfer para acumular archivos (permite agregar desde múltiples fuentes)
+    let collectedFiles = new DataTransfer();
+
+    function updatePreview() {
+        preview.innerHTML = '';
+        Array.from(collectedFiles.files).forEach((file, idx) => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const div = document.createElement('div');
+                div.className = 'relative group';
+                div.innerHTML = `
+                    <img src="${e.target.result}" class="w-full h-20 object-cover rounded-lg border border-stone-200 shadow-sm" />
+                    <button type="button" data-idx="${idx}"
+                        class="remove-img absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow-md hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100">
+                        ✕
+                    </button>
+                    <span class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[9px] text-center py-0.5 rounded-b-lg truncate px-1">${file.name}</span>`;
+                preview.appendChild(div);
+
+                // Botón eliminar
+                div.querySelector('.remove-img').addEventListener('click', function() {
+                    removeFile(parseInt(this.dataset.idx));
+                });
+            };
+            reader.readAsDataURL(file);
         });
     }
+
+    function addFiles(files) {
+        Array.from(files).forEach(f => {
+            if (f.type.startsWith('image/')) collectedFiles.items.add(f);
+        });
+        input.files = collectedFiles.files;
+        updatePreview();
+    }
+
+    function removeFile(idx) {
+        const dt = new DataTransfer();
+        Array.from(collectedFiles.files).forEach((f, i) => {
+            if (i !== idx) dt.items.add(f);
+        });
+        collectedFiles = dt;
+        input.files = collectedFiles.files;
+        updatePreview();
+    }
+
+    // Click en la zona abre el file picker
+    dropZone.addEventListener('click', (e) => {
+        if (e.target === input) return;
+        input.click();
+    });
+
+    // File input change
+    input.addEventListener('change', function() {
+        addFiles(this.files);
+    });
+
+    // Drag & Drop
+    ['dragenter', 'dragover'].forEach(ev => {
+        dropZone.addEventListener(ev, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-primary', 'bg-orange-50/50');
+        });
+    });
+    ['dragleave', 'drop'].forEach(ev => {
+        dropZone.addEventListener(ev, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-primary', 'bg-orange-50/50');
+        });
+    });
+    dropZone.addEventListener('drop', (e) => {
+        addFiles(e.dataTransfer.files);
+    });
+
+    // Paste (Ctrl+V) en toda la página
+    document.addEventListener('paste', (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        const imgs = [];
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) imgs.push(file);
+            }
+        }
+        if (imgs.length > 0) {
+            e.preventDefault();
+            addFiles(imgs);
+            // Feedback visual
+            dropZone.classList.add('border-green-500', 'bg-green-50/50');
+            setTimeout(() => dropZone.classList.remove('border-green-500', 'bg-green-50/50'), 600);
+        }
+    });
+})();
 </script>
 {% endblock %}
