@@ -427,19 +427,65 @@
     function playNotifSound() {
         try {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            // Dos tonos suaves tipo "ding-dong"
-            [0, 0.15].forEach((delay, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.value = i === 0 ? 880 : 1100; // La5 → Do#6
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime + delay);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.4);
-                osc.start(audioCtx.currentTime + delay);
-                osc.stop(audioCtx.currentTime + delay + 0.4);
+            const t = audioCtx.currentTime;
+
+            // Melodía tri-tono brillante tipo "ti-tu-tín ✨"
+            const notes = [
+                { freq: 784,  start: 0,    dur: 0.12 },  // Sol5
+                { freq: 1047, start: 0.13, dur: 0.12 },  // Do6
+                { freq: 1319, start: 0.26, dur: 0.25 },  // Mi6 (más largo, acento final)
+            ];
+
+            notes.forEach(n => {
+                // Oscilador principal (sine limpio)
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.value = n.freq;
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                gain1.gain.setValueAtTime(0, t + n.start);
+                gain1.gain.linearRampToValueAtTime(0.45, t + n.start + 0.015);  // attack rápido
+                gain1.gain.exponentialRampToValueAtTime(0.001, t + n.start + n.dur + 0.3);
+                osc1.start(t + n.start);
+                osc1.stop(t + n.start + n.dur + 0.35);
+
+                // Armónico sutil (triangle, octava arriba) para brillo
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.value = n.freq * 2;
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                gain2.gain.setValueAtTime(0, t + n.start);
+                gain2.gain.linearRampToValueAtTime(0.12, t + n.start + 0.01);
+                gain2.gain.exponentialRampToValueAtTime(0.001, t + n.start + n.dur + 0.2);
+                osc2.start(t + n.start);
+                osc2.stop(t + n.start + n.dur + 0.25);
             });
+
+            // Se reproduce 2 veces con pausa entre ellas para que sea más notorio
+            setTimeout(() => {
+                const t2 = audioCtx.currentTime;
+                const repeat = [
+                    { freq: 784,  start: 0,    dur: 0.12 },
+                    { freq: 1047, start: 0.13, dur: 0.12 },
+                    { freq: 1319, start: 0.26, dur: 0.25 },
+                ];
+                repeat.forEach(n => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = n.freq;
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    gain.gain.setValueAtTime(0, t2 + n.start);
+                    gain.gain.linearRampToValueAtTime(0.35, t2 + n.start + 0.015);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t2 + n.start + n.dur + 0.3);
+                    osc.start(t2 + n.start);
+                    osc.stop(t2 + n.start + n.dur + 0.35);
+                });
+            }, 800); // Repetir después de 800ms
         } catch(e) { console.log('Audio no disponible'); }
     }
 
