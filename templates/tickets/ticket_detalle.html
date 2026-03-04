@@ -280,8 +280,7 @@
                                 placeholder="Escribe un comentario... usa @ para mencionar"
                                 class="w-full resize-none"
                                 required></textarea>
-                            <!-- Autocomplete de @menciones -->
-                            <div id="mention-dropdown" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-white border border-stone-200 rounded-xl shadow-lg overflow-hidden z-50 max-h-48 overflow-y-auto"></div>
+                            <!-- Autocomplete de @menciones se renderiza fuera del card via JS -->
                         </div>
                         <div class="shrink-0 self-end">
                             <button type="submit" name="nuevo_comentario"
@@ -346,11 +345,24 @@
     }
 </style>
 
+<!-- Dropdown de menciones fuera de contenedores con overflow:hidden -->
+<div id="mention-dropdown" class="hidden fixed bg-white border border-stone-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto" style="z-index: 9999; min-width: 250px;"></div>
+
 <script>
 (function() {
     const textarea = document.getElementById('comentario-input');
     const dropdown = document.getElementById('mention-dropdown');
     if (!textarea || !dropdown) return;
+
+    // Posicionar dropdown encima del textarea
+    function positionDropdown() {
+        const rect = textarea.getBoundingClientRect();
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = rect.width + 'px';
+        // Mostrar encima del textarea
+        const dropdownHeight = dropdown.offsetHeight || 192;
+        dropdown.style.top = (rect.top - dropdownHeight - 4) + 'px';
+    }
 
     let mentionMode = false;
     let mentionQuery = '';
@@ -436,6 +448,7 @@
         `).join('');
 
         dropdown.classList.remove('hidden');
+        positionDropdown();
 
         // Click handler
         dropdown.querySelectorAll('.mention-item').forEach(el => {
