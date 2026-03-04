@@ -197,22 +197,43 @@ def dispositivos_lista(request):
         .select_related('usuario')
         .order_by('-fecha_ultimo_uso')
     )
-    return render(request, "usuarios/dispositivos_lista.html", {"dispositivos": dispositivos})
+    pendientes = dispositivos.filter(activo=False).count()
+    aprobados = dispositivos.filter(activo=True).count()
+    return render(request, "usuarios/dispositivos_lista.html", {
+        "dispositivos": dispositivos,
+        "pendientes": pendientes,
+        "aprobados": aprobados,
+    })
 
 
 @login_required
 def dispositivo_toggle(request, pk):
     """
-    Activar/desactivar un dispositivo de notificación (solo admin).
+    Aprobar, desactivar o eliminar un dispositivo de notificación (solo admin).
     """
     if not request.user.es_admin():
         messages.error(request, "No tienes permisos para gestionar dispositivos")
         return redirect("dashboard")
 
     dispositivo = get_object_or_404(DispositivoNotificacion, pk=pk)
-    dispositivo.activo = not dispositivo.activo
-    dispositivo.save(update_fields=['activo'])
+    accion = request.POST.get('accion', 'toggle')
 
-    estado = "activado" if dispositivo.activo else "desactivado"
-    messages.success(request, f"Dispositivo {estado} correctamente")
+    if accion == 'eliminar':
+        usuario_nombre = dispositivo.usuario.username
+        dispositivo.delete()
+        messages.success(request, f"Dispositivo de {usuario_nombre} eliminado correctamente")
+    elif accion == 'aprobar':
+        dispositivo.activo = True
+        dispositivo.save(update_fields=['activo'])
+        messages.success(request, f"Dispositivo de {dispositivo.usuario.username} aprobado")
+    elif accion == 'rechazar':
+        dispositivo.activo = False
+        dispositivo.save(update_fields=['activo'])
+        messages.success(request, f"Dispositivo de {dispositivo.usuario.username} desactivado")
+    else:
+        dispositivo.activo = not dispositivo.activo
+        dispositivo.save(update_fields=['activo'])
+        estado = "activado" if dispositivo.activo else "desactivado"
+        messages.success(request, f"Dispositivo {estado} correctamente")
+
     return redirect("dispositivos_lista")
