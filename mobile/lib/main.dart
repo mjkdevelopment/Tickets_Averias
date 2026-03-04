@@ -82,7 +82,7 @@ const String kPanelBaseUrl =
     'https://majestiksolutions.pythonanywhere.com/tickets/';
 
 /// Versión actual de la app (debe coincidir con config/app_version.py en el server)
-const String kAppVersion = '1.0.2';
+const String kAppVersion = '1.0.3';
 
 /// URL de la API de versión
 const String kVersionApiUrl =
@@ -165,6 +165,22 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _isInit = true;
     });
+
+    // Navegar al ticket pendiente después de que el widget tree esté listo
+    if (_pendingInitialUrl != null && _isApproved && !_needsUpdate) {
+      final url = _pendingInitialUrl!;
+      _pendingInitialUrl = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) {
+          Navigator.of(ctx).push(
+            MaterialPageRoute(
+              builder: (_) => WebViewScreen(initialUrl: url),
+            ),
+          );
+        }
+      });
+    }
   }
 
   Future<void> _checkForUpdate() async {
@@ -244,18 +260,6 @@ class _MyAppState extends State<MyApp> {
       ),
       home: Builder(
         builder: (context) {
-          if (_pendingInitialUrl != null && _isApproved) {
-            final url = _pendingInitialUrl!;
-            _pendingInitialUrl = null;
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => WebViewScreen(initialUrl: url),
-                ),
-              );
-            });
-          }
           return homeWidget;
         },
       ),
