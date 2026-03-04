@@ -87,7 +87,7 @@ const String kPanelBaseUrl =
     'https://majestiksolutions.pythonanywhere.com/tickets/';
 
 /// Versión actual de la app (debe coincidir con config/app_version.py en el server)
-const String kAppVersion = '1.0.5';
+const String kAppVersion = '1.0.6';
 
 /// URL de la API de versión
 const String kVersionApiUrl =
@@ -96,10 +96,10 @@ const String kVersionApiUrl =
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Modo edge-to-edge: ocultar barra de navegación Android
+  // Modo inmersivo: oculta completamente la barra de navegación Android
   // El usuario puede deslizar hacia arriba para verla temporalmente
   SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.edgeToEdge,
+    SystemUiMode.immersiveSticky,
   );
 
   // Barras de sistema transparentes para experiencia inmersiva
@@ -297,13 +297,37 @@ class WebViewScreen extends StatefulWidget {
   State<WebViewScreen> createState() => _WebViewScreenState();
 }
 
-class _WebViewScreenState extends State<WebViewScreen> {
+class _WebViewScreenState extends State<WebViewScreen> with WidgetsBindingObserver {
   late final WebViewController _controller;
   bool _isLoading = true;
+
+  /// CSS que se inyecta en el WebView para deshabilitar efectos pesados
+  /// y mejorar el rendimiento en dispositivos Android de gama media/baja.
+  static const String _perfCss = '''(function(){
+    var b=document.querySelector('.fixed.pointer-events-none');
+    if(b)b.style.display='none';
+    if(document.getElementById('_wvp'))return;
+    var s=document.createElement('style');
+    s.id='_wvp';
+    s.textContent=
+      '.glass{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,0.97)!important}'
+      +'.neon-snake::before{display:none!important}'
+      +'.alert-pulse,.badge-pulse{animation:none!important}'
+      +'.animate-fade-in-up{animation:none!important;opacity:1!important}'
+      +'.card-hover,.card-hover *{transition:none!important}'
+      +'.flex.overflow-x-auto{flex-wrap:wrap!important;overflow-x:visible!important;overflow:visible!important}'
+      +'.mix-blend-multiply{mix-blend-mode:normal!important;filter:none!important}'
+      +'.blur-3xl{filter:none!important;-webkit-filter:none!important}'
+      +'.filter{filter:none!important;-webkit-filter:none!important}'
+      +'nav.absolute{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,0.98)!important}';
+    document.head.appendChild(s);
+    document.documentElement.style.webkitTapHighlightColor='transparent';
+  })();''';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -315,14 +339,28 @@ class _WebViewScreenState extends State<WebViewScreen> {
           },
           onPageFinished: (_) {
             if (mounted) setState(() { _isLoading = false; });
-            // Optimizar rendering dentro del WebView
-            _controller.runJavaScript(
-              "document.documentElement.style.webkitTapHighlightColor='transparent';"
-            );
+            // Inyectar CSS ligero para rendimiento móvil
+            _controller.runJavaScript(_perfCss);
+            // Re-aplicar modo inmersivo después de cada carga de página
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
           },
         ),
       )
       ..loadRequest(Uri.parse(widget.initialUrl));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-aplicar modo inmersivo al volver del fondo
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
