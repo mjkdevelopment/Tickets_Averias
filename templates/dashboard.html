@@ -2,107 +2,136 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h3 class="mb-1">Bienvenido, {{ user.first_name|default:user.username }}</h3>
-<p class="text-muted mb-4">Resumen de tickets abiertos y tiempo transcurrido.</p>
+<div class="animate-fade-in-up opacity-0 stagger-1">
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-textmain">
+            Bienvenido, {{ user.first_name|default:user.username }}
+            <span class="text-primary">{{ user.last_name|default:"" }}</span>
+        </h1>
+        <p class="text-textmuted font-medium mt-1">Resumen de tickets abiertos y tiempo transcurrido.</p>
+    </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="text-muted small">Tickets abiertos</div>
-                <div class="fs-3 fw-bold">{{ total_abiertos }}</div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <!-- Tickets abiertos -->
+        <div class="glass neon-snake rounded-2xl p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-textmuted uppercase tracking-widest mb-1">Tickets abiertos</p>
+                    <p class="text-4xl font-extrabold text-textmain">{{ total_abiertos }}</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 text-primary rounded-xl flex items-center justify-center">
+                    <i class="ph-fill ph-ticket text-2xl"></i>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card shadow-sm border-danger">
-            <div class="card-body">
-                <div class="text-muted small">Vencidos (SLA)</div>
-                <div class="fs-3 fw-bold text-danger">{{ vencidos }}</div>
+
+        <!-- Vencidos -->
+        <div class="glass neon-snake rounded-2xl p-6 card-hover {% if vencidos > 0 %}alert-pulse{% endif %}">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-textmuted uppercase tracking-widest mb-1">Vencidos (SLA)</p>
+                    <p class="text-4xl font-extrabold {% if vencidos > 0 %}text-red-500{% else %}text-green-500{% endif %}">{{ vencidos }}</p>
+                </div>
+                <div class="w-12 h-12 {% if vencidos > 0 %}bg-red-100 text-red-500{% else %}bg-green-100 text-green-500{% endif %} rounded-xl flex items-center justify-center">
+                    <i class="ph-fill ph-warning text-2xl"></i>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="text-muted small">Por vencer (próximas 2h)</div>
-                <div class="fs-3 fw-bold">{{ por_vencer_2h }}</div>
+
+        <!-- Por vencer -->
+        <div class="glass neon-snake rounded-2xl p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-textmuted uppercase tracking-widest mb-1">Por vencer (2h)</p>
+                    <p class="text-4xl font-extrabold {% if por_vencer_2h > 0 %}text-amber-500{% else %}text-textmain{% endif %}">{{ por_vencer_2h }}</p>
+                </div>
+                <div class="w-12 h-12 {% if por_vencer_2h > 0 %}bg-amber-100 text-amber-500{% else %}bg-stone-100 text-stone-400{% endif %} rounded-xl flex items-center justify-center">
+                    <i class="ph-fill ph-clock text-2xl"></i>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-        <strong>Tickets abiertos</strong>
-        <a href="{% url 'tickets_lista' %}?ver=abiertos" class="btn btn-sm btn-outline-primary">Ver todos</a>
+<!-- Tickets abiertos list -->
+<div class="animate-fade-in-up opacity-0 stagger-2">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-extrabold text-textmain tracking-tight">Tickets abiertos</h2>
+        <a href="{% url 'tickets_lista' %}?ver=abiertos"
+            class="text-sm font-bold text-primary hover:text-primary_hover transition-colors flex items-center">
+            Ver todos <i class="ph-bold ph-arrow-right ml-1"></i>
+        </a>
     </div>
-    <div class="card-body">
-        {% if tickets_abiertos %}
-            <div class="tickets-grid">
-                {% for t in tickets_abiertos %}
-                    <a href="{% url 'ticket_detalle' t.pk %}" class="text-decoration-none">
-                        <div class="card ticket-card shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <span class="ticket-number">{{ t.numero_ticket }}</span>
-                                    <span class="badge badge-estado 
-                                        {% if t.estado == 'EN_PROCESO' %}
-                                            bg-warning text-dark
-                                        {% elif t.estado == 'PENDIENTE' %}
-                                            bg-secondary
-                                        {% else %}
-                                            bg-info
-                                        {% endif %}">
-                                        {{ t.get_estado_display }}
-                                    </span>
-                                </div>
-                                
-                                <h5 class="ticket-local">{{ t.local.codigo }}</h5>
-                                <p class="ticket-category">{{ t.local.nombre }}</p>
-                                
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="ticket-meta">📋 {{ t.categoria.nombre }}</span>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between align-items-center">
-                                    {% if t.esta_vencido %}
-                                        <span class="badge badge-sla vencido">
-                                            ⚠️ Vencido
-                                        </span>
-                                    {% else %}
-                                        {% with tiempo_restante=t.tiempo_restante_sla %}
-                                            {% if tiempo_restante == None %}
-                                                <span class="badge badge-sla ok">
-                                                    ✓ Completado
-                                                </span>
-                                            {% elif tiempo_restante.total_seconds < 7200 %}
-                                                <span class="badge badge-sla proximo">
-                                                    ⏰ Por vencer
-                                                </span>
-                                            {% else %}
-                                                <span class="badge badge-sla ok">
-                                                    ✓ En SLA
-                                                </span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% endif %}
-                                    
-                                    <small class="text-muted ticket-meta">
-                                        {{ t.fecha_creacion|timesince }}
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                {% endfor %}
+
+    {% if tickets_abiertos %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for t in tickets_abiertos %}
+        <a href="{% url 'ticket_detalle' t.pk %}" class="block group">
+            <div class="glass neon-snake ticket-shape rounded-xl p-5 shadow-sm active:scale-[0.98] transition-transform hover:shadow-lg relative h-full flex flex-col justify-between hover:-translate-y-1 {% if t.esta_vencido and t.estado != 'RESUELTO' and t.estado != 'CERRADO' %}alert-pulse{% endif %}">
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity rounded-l-xl"></div>
+
+                <div>
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-stone-100 text-stone-600 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-stone-200 inline-flex items-center">
+                            {{ t.numero_ticket }}
+                        </span>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider
+                            {% if t.estado == 'RESUELTO' or t.estado == 'CERRADO' %} bg-green-100 text-green-700
+                            {% elif t.estado == 'EN_PROCESO' %} bg-amber-100 text-amber-700
+                            {% elif t.estado == 'PENDIENTE' %} bg-stone-100 text-stone-600
+                            {% else %} bg-blue-100 text-blue-700 {% endif %}">
+                            {{ t.get_estado_display }}
+                        </span>
+                    </div>
+
+                    <p class="text-base font-bold text-textmain mb-1">
+                        {{ t.local.codigo }} - {{ t.local.nombre }}
+                    </p>
+                    <p class="text-xs font-semibold text-textmuted flex items-center">
+                        <i class="ph-fill ph-tag mr-1.5 text-stone-400"></i>
+                        {{ t.categoria.nombre }}
+                    </p>
+                </div>
+
+                <div class="mt-4 pt-3 ticket-divider flex justify-between items-center">
+                    <div>
+                        {% if t.esta_vencido %}
+                        <span class="text-xs font-bold text-red-600 bg-red-100 border border-red-300 px-2.5 py-1 rounded-full flex items-center badge-pulse">
+                            <i class="ph-bold ph-warning mr-1"></i> Vencido
+                        </span>
+                        {% else %}
+                        {% with tiempo_restante=t.tiempo_restante_sla %}
+                        {% if tiempo_restante == None %}
+                        <span class="text-xs font-bold text-green-500 flex items-center">
+                            <i class="ph-bold ph-check-circle mr-1"></i> Completado
+                        </span>
+                        {% elif tiempo_restante.total_seconds < 7200 %}
+                        <span class="text-xs font-bold text-amber-500 flex items-center">
+                            <i class="ph-bold ph-clock mr-1"></i> Por vencer
+                        </span>
+                        {% else %}
+                        <span class="text-xs font-bold text-green-500 flex items-center">
+                            <i class="ph-bold ph-check mr-1"></i> En SLA
+                        </span>
+                        {% endif %}
+                        {% endwith %}
+                        {% endif %}
+                    </div>
+                    <span class="text-xs text-textmuted font-medium">{{ t.fecha_creacion|timesince }}</span>
+                </div>
             </div>
-        {% else %}
-            <div class="alert alert-info text-center">
-                <i class="fs-1">📋</i>
-                <p class="mb-0 mt-2">No tienes tickets abiertos ahora mismo.</p>
-            </div>
-        {% endif %}
+        </a>
+        {% endfor %}
     </div>
+    {% else %}
+    <div class="glass neon-snake p-12 rounded-2xl flex flex-col items-center justify-center text-center mt-6 shadow-sm">
+        <div class="w-20 h-20 bg-orange-50 text-primary rounded-full flex items-center justify-center mb-4 border border-orange-100">
+            <i class="ph-fill ph-ticket text-4xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-textmain mb-2">Sin tickets abiertos</h3>
+        <p class="text-textmuted text-sm font-medium">No tienes tickets abiertos ahora mismo. ¡Todo bajo control!</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
