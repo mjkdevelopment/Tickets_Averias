@@ -13,6 +13,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:file_picker/file_picker.dart';
 import 'wizard.dart';
 import 'waiting_room.dart';
 
@@ -87,7 +89,7 @@ const String kPanelBaseUrl =
     'https://majestiksolutions.pythonanywhere.com/tickets/';
 
 /// Versión actual de la app (debe coincidir con config/app_version.py en el server)
-const String kAppVersion = '1.0.6';
+const String kAppVersion = '1.0.7';
 
 /// URL de la API de versión
 const String kVersionApiUrl =
@@ -347,6 +349,35 @@ class _WebViewScreenState extends State<WebViewScreen> with WidgetsBindingObserv
         ),
       )
       ..loadRequest(Uri.parse(widget.initialUrl));
+
+    // Habilitar selección de archivos (input type="file") en Android WebView
+    if (_controller.platform is AndroidWebViewController) {
+      (_controller.platform as AndroidWebViewController).setOnShowFileSelector(
+        (FileSelectorParams params) async {
+          try {
+            // Determinar si acepta solo imágenes
+            final acceptsImages = params.acceptTypes.any(
+              (t) => t.contains('image'),
+            );
+
+            final result = await FilePicker.platform.pickFiles(
+              type: acceptsImages ? FileType.image : FileType.any,
+              allowMultiple: params.mode == FileSelectorMode.openMultiple,
+            );
+
+            if (result == null || result.files.isEmpty) return [];
+
+            return result.files
+                .where((f) => f.path != null)
+                .map((f) => Uri.file(f.path!).toString())
+                .toList();
+          } catch (e) {
+            debugPrint('Error al seleccionar archivo: $e');
+            return [];
+          }
+        },
+      );
+    }
   }
 
   @override
