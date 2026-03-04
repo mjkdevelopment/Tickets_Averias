@@ -152,3 +152,71 @@ def enviar_notificacion_sla_vencido(ticket):
     except Exception as e:
         print(f"[FCM] ERROR enviando SLA vencido: {e}")
         return False
+
+
+def enviar_notificacion_mencion(ticket, autor, usuario_destino, texto_comentario):
+    """
+    Envía una notificación push FCM cuando alguien menciona a un usuario en un comentario.
+    Solo envía si el usuario destino tiene dispositivos activos.
+    """
+    try:
+        dispositivos = DispositivoNotificacion.objects.filter(
+            usuario=usuario_destino,
+            activo=True,
+        ).exclude(fcm_token__isnull=True).exclude(fcm_token__exact="")
+
+        if not dispositivos.exists():
+            print(f"[FCM] Mención: {usuario_destino} no tiene dispositivos activos.")
+            return
+
+        nombre_autor = autor.get_full_name() or autor.username
+
+        access_token = _get_access_token()
+        url = f"https://fcm.googleapis.com/v1/projects/{settings.FIREBASE_PROJECT_ID}/messages:send"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json; charset=UTF-8",
+        }
+
+        relative_url = reverse("ticket_detalle", args=[ticket.pk])
+        ticket_url = settings.BASE_URL.rstrip("/") + relative_url
+
+        resumen = texto_comentario[:100]
+        if len(texto_comentario) > 100:
+            resumen += "..."
+
+        for disp in dispositivos:
+            cuerpo = {
+                "message": {
+                    "token": disp.fcm_token,
+                    "notification": {
+                        "title": f"💬 {nombre_autor} te mencionó",
+                        "body": f"{ticket.numero_ticket}: {resumen}",
+                    },
+                    "data": {
+                        "ticket_id": str(ticket.id),
+                        "ticket_url": ticket_url,
+                        "tipo": "mencion",
+                        "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                    },
+                    "android": {
+                        "notification": {
+                            "sound": "default",
+                            "channel_id": "mentions",
+                        }
+                    },
+                    "apns": {
+                        "payload": {
+                            "aps": {
+                                "sound": "default",
+                            }
+                        }
+                    },
+                }
+            }
+
+            resp = requests.post(url, headers=headers, json=cuerpo, timeout=10)
+            print(f"[FCM] Mención → {usuario_destino.username}: {resp.status_code}")
+
+    except Exception as e:
+        print(f"[FCM] ERROR enviando mención: {e}")

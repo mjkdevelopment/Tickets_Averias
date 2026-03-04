@@ -8,4 +8,8 @@ urlpatterns = [
     path('<int:pk>/estado/', views.ticket_actualizar_estado, name='ticket_actualizar_estado'),
     path('<int:pk>/tomar/', views.ticket_tomar, name='ticket_tomar'),
 
+    # API: Notificaciones y menciones
+    path('api/notificaciones/', views.api_notificaciones, name='api_notificaciones'),
+    path('api/notificaciones/leer/', views.api_notificaciones_leer, name='api_notificaciones_leer'),
+    path('api/usuarios/', views.api_usuarios_buscar, name='api_usuarios_buscar'),
 ]

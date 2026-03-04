@@ -372,3 +372,67 @@ class ImagenTicket(models.Model):
 
     def __str__(self):
         return f"Imagen de {self.ticket.numero_ticket} por {self.subida_por}"
+
+
+class Notificacion(models.Model):
+    """
+    Notificaciones in-app para menciones (@usuario) en comentarios.
+    """
+    TIPOS = [
+        ('MENCION', 'Mención en comentario'),
+        ('ASIGNACION', 'Ticket asignado'),
+        ('ESTADO', 'Cambio de estado'),
+    ]
+
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        related_name='notificaciones',
+        verbose_name='Usuario destino',
+    )
+
+    ticket = models.ForeignKey(
+        'Ticket',
+        on_delete=models.CASCADE,
+        related_name='notificaciones',
+        verbose_name='Ticket',
+    )
+
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPOS,
+        default='MENCION',
+        verbose_name='Tipo',
+    )
+
+    mensaje = models.CharField(
+        max_length=300,
+        verbose_name='Mensaje',
+    )
+
+    autor = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notificaciones_enviadas',
+        verbose_name='Enviada por',
+    )
+
+    leida = models.BooleanField(
+        default=False,
+        verbose_name='Leída',
+    )
+
+    fecha = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha',
+    )
+
+    class Meta:
+        verbose_name = 'Notificación'
+        verbose_name_plural = 'Notificaciones'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"Notif → {self.usuario.username}: {self.mensaje[:50]}"

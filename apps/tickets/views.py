@@ -1,14 +1,21 @@
+import re
+import logging
+
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
+from django.views.decorators.http import require_GET, require_POST
 
 from .utils import enviar_whatsapp_ticket_asignado
-from apps.tickets.models import Ticket, ComentarioTicket, ImagenTicket
+from apps.tickets.models import Ticket, ComentarioTicket, ImagenTicket, Notificacion
 from apps.tickets.forms import TicketForm, ComentarioTicketForm, TicketEstadoForm
-from .fcm import enviar_notificacion_nuevo_ticket
+from .fcm import enviar_notificacion_nuevo_ticket, enviar_notificacion_mencion
 from apps.locales.models import Local
+from apps.usuarios.models import Usuario
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -250,6 +257,10 @@ def ticket_detalle(request, pk):
                 comentario.ticket = ticket
                 comentario.usuario = usuario
                 comentario.save()
+
+                # Procesar @menciones y crear notificaciones
+                _procesar_menciones(comentario, usuario, ticket)
+
                 messages.success(request, "Comentario agregado.")
                 return redirect("ticket_detalle", pk=ticket.pk)
 
@@ -339,3 +350,120 @@ def ticket_actualizar_estado(request, pk):
         'ticket': ticket,
         'form': form,
     })
+
+
+# =====================================================================
+# HELPERS: Menciones y Notificaciones
+# =====================================================================
+
+def _procesar_menciones(comentario, autor, ticket):
+    """
+    Parsea @username en el texto del comentario.
+    Por cada mención válida crea una Notificacion in-app y envía FCM push.
+    """
+    # Buscar todas las @menciones en el texto
+    mencionados_usernames = re.findall(r'@(\w+)', comentario.comentario)
+    if not mencionados_usernames:
+        return
+
+    # Buscar usuarios que existen con esos usernames (sin incluir al autor)
+    usuarios_mencionados = Usuario.objects.filter(
+        username__in=mencionados_usernames,
+        activo=True,
+    ).exclude(pk=autor.pk)
+
+    nombre_autor = autor.get_full_name() or autor.username
+
+    for user_dest in usuarios_mencionados:
+        # Crear notificación in-app
+        Notificacion.objects.create(
+            usuario=user_dest,
+            ticket=ticket,
+            tipo='MENCION',
+            mensaje=f'{nombre_autor} te mencionó en {ticket.numero_ticket}: "{comentario.comentario[:80]}"',
+            autor=autor,
+        )
+
+        # Enviar FCM push (mobile)
+        try:
+            enviar_notificacion_mencion(ticket, autor, user_dest, comentario.comentario)
+        except Exception:
+            logger.exception("Error FCM mención a %s", user_dest.username)
+
+
+# =====================================================================
+# API: Notificaciones
+# =====================================================================
+
+@login_required
+@require_GET
+def api_notificaciones(request):
+    """
+    Devuelve las notificaciones no leídas del usuario logueado.
+    Usado por el polling JS del frontend para mostrar la campana.
+    """
+    notifs = Notificacion.objects.filter(
+        usuario=request.user,
+        leida=False,
+    ).select_related('ticket', 'autor').order_by('-fecha')[:20]
+
+    data = {
+        'count': notifs.count(),
+        'items': [
+            {
+                'id': n.id,
+                'mensaje': n.mensaje,
+                'ticket_id': n.ticket_id,
+                'ticket_numero': n.ticket.numero_ticket,
+                'autor': (n.autor.get_full_name() or n.autor.username) if n.autor else '',
+                'fecha': n.fecha.strftime('%d/%m %H:%M'),
+                'tipo': n.tipo,
+            }
+            for n in notifs
+        ],
+    }
+    return JsonResponse(data)
+
+
+@login_required
+@require_POST
+def api_notificaciones_leer(request):
+    """
+    Marca todas las notificaciones del usuario como leídas.
+    """
+    Notificacion.objects.filter(
+        usuario=request.user,
+        leida=False,
+    ).update(leida=True)
+    return JsonResponse({'ok': True})
+
+
+@login_required
+@require_GET
+def api_usuarios_buscar(request):
+    """
+    Busca usuarios activos por username/nombre para el autocompletado de @menciones.
+    GET /tickets/api/usuarios/?q=juan
+    """
+    q = request.GET.get('q', '').strip()
+    if len(q) < 1:
+        return JsonResponse({'usuarios': []})
+
+    usuarios = Usuario.objects.filter(
+        Q(username__icontains=q) |
+        Q(first_name__icontains=q) |
+        Q(last_name__icontains=q),
+        activo=True,
+    ).exclude(pk=request.user.pk)[:10]
+
+    data = {
+        'usuarios': [
+            {
+                'username': u.username,
+                'nombre': u.get_full_name() or u.username,
+                'rol': u.get_rol_display(),
+            }
+            for u in usuarios
+        ],
+    }
+    return JsonResponse(data)

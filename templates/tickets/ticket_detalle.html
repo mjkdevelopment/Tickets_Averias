@@ -275,11 +275,13 @@
                                 {{ user.username|first|upper }}
                             </div>
                         </div>
-                        <div class="flex-1">
-                            <textarea name="comentario" rows="2"
-                                placeholder="Escribe un comentario..."
+                        <div class="flex-1 relative">
+                            <textarea name="comentario" id="comentario-input" rows="2"
+                                placeholder="Escribe un comentario... usa @ para mencionar"
                                 class="w-full resize-none"
                                 required></textarea>
+                            <!-- Autocomplete de @menciones -->
+                            <div id="mention-dropdown" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-white border border-stone-200 rounded-xl shadow-lg overflow-hidden z-50 max-h-48 overflow-y-auto"></div>
                         </div>
                         <div class="shrink-0 self-end">
                             <button type="submit" name="nuevo_comentario"
@@ -343,4 +345,135 @@
         margin-bottom: 0.5rem;
     }
 </style>
+
+<script>
+(function() {
+    const textarea = document.getElementById('comentario-input');
+    const dropdown = document.getElementById('mention-dropdown');
+    if (!textarea || !dropdown) return;
+
+    let mentionMode = false;
+    let mentionQuery = '';
+    let mentionStart = -1;
+    let selectedIdx = 0;
+    let currentUsers = [];
+
+    textarea.addEventListener('input', function() {
+        const val = this.value;
+        const pos = this.selectionStart;
+
+        // Buscar el último @ antes del cursor
+        const before = val.substring(0, pos);
+        const atIdx = before.lastIndexOf('@');
+
+        if (atIdx >= 0) {
+            // Verificar que no hay espacio entre @ y el cursor (excepto si acaba de escribir @)
+            const query = before.substring(atIdx + 1);
+            if (!/\s/.test(query) || query === '') {
+                mentionMode = true;
+                mentionStart = atIdx;
+                mentionQuery = query;
+                selectedIdx = 0;
+                fetchUsuarios(query);
+                return;
+            }
+        }
+
+        mentionMode = false;
+        dropdown.classList.add('hidden');
+    });
+
+    textarea.addEventListener('keydown', function(e) {
+        if (!mentionMode || dropdown.classList.contains('hidden')) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIdx = Math.min(selectedIdx + 1, currentUsers.length - 1);
+            highlightItem();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIdx = Math.max(selectedIdx - 1, 0);
+            highlightItem();
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (currentUsers.length > 0) {
+                e.preventDefault();
+                insertMention(currentUsers[selectedIdx].username);
+            }
+        } else if (e.key === 'Escape') {
+            mentionMode = false;
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    async function fetchUsuarios(q) {
+        try {
+            const resp = await fetch(`/tickets/api/usuarios/?q=${encodeURIComponent(q)}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            currentUsers = data.usuarios;
+            renderDropdown();
+        } catch(e) { /* silent */ }
+    }
+
+    function renderDropdown() {
+        if (currentUsers.length === 0) {
+            dropdown.classList.add('hidden');
+            return;
+        }
+
+        dropdown.innerHTML = currentUsers.map((u, i) => `
+            <div class="mention-item px-3 py-2.5 cursor-pointer flex items-center gap-2.5 transition-colors
+                ${i === selectedIdx ? 'bg-orange-50' : 'hover:bg-stone-50'}"
+                data-username="${u.username}" data-idx="${i}">
+                <div class="w-7 h-7 rounded-full bg-orange-100 text-primary flex items-center justify-center text-[11px] font-bold shrink-0">
+                    ${u.username.charAt(0).toUpperCase()}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-textmain truncate">@${u.username}</p>
+                    <p class="text-[10px] text-textmuted truncate">${u.nombre} · ${u.rol}</p>
+                </div>
+            </div>
+        `).join('');
+
+        dropdown.classList.remove('hidden');
+
+        // Click handler
+        dropdown.querySelectorAll('.mention-item').forEach(el => {
+            el.addEventListener('click', () => {
+                insertMention(el.dataset.username);
+            });
+            el.addEventListener('mouseenter', () => {
+                selectedIdx = parseInt(el.dataset.idx);
+                highlightItem();
+            });
+        });
+    }
+
+    function highlightItem() {
+        dropdown.querySelectorAll('.mention-item').forEach((el, i) => {
+            el.classList.toggle('bg-orange-50', i === selectedIdx);
+        });
+    }
+
+    function insertMention(username) {
+        const val = textarea.value;
+        const before = val.substring(0, mentionStart);
+        const after = val.substring(textarea.selectionStart);
+        textarea.value = before + '@' + username + ' ' + after;
+        textarea.focus();
+        const newPos = mentionStart + username.length + 2;
+        textarea.setSelectionRange(newPos, newPos);
+        mentionMode = false;
+        dropdown.classList.add('hidden');
+    }
+
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!textarea.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            mentionMode = false;
+        }
+    });
+})();
+</script>
 {% endblock %}
