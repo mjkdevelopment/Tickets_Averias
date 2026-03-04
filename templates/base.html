@@ -464,28 +464,7 @@
                 osc2.stop(t + n.start + n.dur + 0.25);
             });
 
-            // Se reproduce 2 veces con pausa entre ellas para que sea más notorio
-            setTimeout(() => {
-                const t2 = audioCtx.currentTime;
-                const repeat = [
-                    { freq: 784,  start: 0,    dur: 0.12 },
-                    { freq: 1047, start: 0.13, dur: 0.12 },
-                    { freq: 1319, start: 0.26, dur: 0.25 },
-                ];
-                repeat.forEach(n => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.value = n.freq;
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    gain.gain.setValueAtTime(0, t2 + n.start);
-                    gain.gain.linearRampToValueAtTime(0.35, t2 + n.start + 0.015);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t2 + n.start + n.dur + 0.3);
-                    osc.start(t2 + n.start);
-                    osc.stop(t2 + n.start + n.dur + 0.35);
-                });
-            }, 800); // Repetir después de 800ms
+
         } catch(e) { console.log('Audio no disponible'); }
     }
 
@@ -528,7 +507,7 @@
         }
 
         list.innerHTML = items.map(n => `
-            <a href="/tickets/${n.ticket_id}/" class="block px-4 py-3 hover:bg-orange-50/50 transition-colors">
+            <a href="/tickets/${n.ticket_id}/" onclick="marcarTicketLeido(${n.ticket_id})" class="block px-4 py-3 hover:bg-orange-50/50 transition-colors">
                 <div class="flex gap-3 items-start">
                     <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
                         <i class="ph-fill ph-chat-circle-dots text-sm"></i>
@@ -570,6 +549,23 @@
             renderNotifList([]);
         } catch(e) { /* silent */ }
     }
+
+    async function marcarTicketLeido(ticketId) {
+        try {
+            await fetch(`/tickets/api/notificaciones/leer/${ticketId}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+            });
+        } catch(e) { /* silent */ }
+    }
+
+    // Auto-marcar leídas si estamos en la página de detalle del ticket
+    (function() {
+        const m = window.location.pathname.match(/^\/tickets\/(\d+)\//);
+        if (m) {
+            marcarTicketLeido(parseInt(m[1]));
+        }
+    })();
 
     function getCsrfToken() {
         const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));

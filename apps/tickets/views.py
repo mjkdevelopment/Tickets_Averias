@@ -439,6 +439,20 @@ def api_notificaciones_leer(request):
 
 
 @login_required
+@require_POST
+def api_notificaciones_leer_ticket(request, ticket_id):
+    """
+    Marca como leídas solo las notificaciones del usuario para un ticket específico.
+    """
+    actualizadas = Notificacion.objects.filter(
+        usuario=request.user,
+        ticket_id=ticket_id,
+        leida=False,
+    ).update(leida=True)
+    return JsonResponse({'ok': True, 'marcadas': actualizadas})
+
+
+@login_required
 @require_GET
 def api_usuarios_buscar(request):
     """

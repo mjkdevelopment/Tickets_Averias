@@ -11,5 +11,6 @@ urlpatterns = [
     # API: Notificaciones y menciones
     path('api/notificaciones/', views.api_notificaciones, name='api_notificaciones'),
     path('api/notificaciones/leer/', views.api_notificaciones_leer, name='api_notificaciones_leer'),
+    path('api/notificaciones/leer/<int:ticket_id>/', views.api_notificaciones_leer_ticket, name='api_notificaciones_leer_ticket'),
     path('api/usuarios/', views.api_usuarios_buscar, name='api_usuarios_buscar'),
 ]
