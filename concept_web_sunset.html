@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Concept - Botija Tickets Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#F97316', // tailwind orange.500
+                        primary_hover: '#EA580C', // orange.600
+                        secondary: '#FB923C', // orange.400
+                        accent: '#FBBF24', // amber.400
+                        basebg: '#F5F5F4', // stone.100
+                        surface: 'rgba(255, 255, 255, 0.75)',
+                        surface_solid: '#FFFFFF',
+                        textmain: '#1C1917', // stone.900
+                        textmuted: '#78716C', // stone.500
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: theme('colors.basebg');
+            color: theme('colors.textmain');
+            overflow: hidden;
+            /* App-like feel */
+        }
+
+        .glass {
+            background: theme('colors.surface');
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.15), 0 10px 10px -5px rgba(249, 115, 22, 0.05);
+            border-color: rgba(249, 115, 22, 0.3);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .stagger-1 {
+            animation-delay: 100ms;
+        }
+
+        .stagger-2 {
+            animation-delay: 200ms;
+        }
+
+        .stagger-3 {
+            animation-delay: 300ms;
+        }
+
+        .stagger-4 {
+            animation-delay: 400ms;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #D6D3D1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #A8A29E;
+        }
+    </style>
+</head>
+
+<body class="antialiased h-screen flex relative selection:bg-primary/30 selection:text-primary">
+
+    <!-- Animated Background Blobs -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div
+            class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob">
+        </div>
+        <div
+            class="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000">
+        </div>
+        <div
+            class="absolute bottom-[-20%] left-[20%] w-[45rem] h-[45rem] bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000">
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col glass z-20 transition-all border-r border-stone-200/50">
+        <div class="h-20 flex items-center px-8 border-b border-stone-200/50">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center mr-3 shadow-lg shadow-primary/30">
+                <i class="ph-bold ph-ticket text-xl"></i>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight">Botija<span class="text-primary">Tickets</span></span>
+        </div>
+        <nav class="flex-1 px-4 py-8 space-y-2 overflow-y-auto">
+            <p class="px-4 text-[10px] font-bold text-textmuted uppercase tracking-widest mb-4">Menú Principal</p>
+            <a href="#"
+                class="flex items-center px-4 py-3 bg-gradient-to-r from-primary to-primary_hover text-white rounded-xl shadow-lg shadow-primary/25 transition-all transform hover:scale-[1.02]">
+                <i class="ph-fill ph-squares-four text-xl mr-3"></i>
+                <span class="font-semibold tracking-wide">Dashboard</span>
+            </a>
+            <a href="#"
+                class="flex items-center px-4 py-3 text-textmuted hover:text-primary hover:bg-orange-50 rounded-xl transition-all group font-medium">
+                <i class="ph ph-list-dashes text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Tickets</span>
+                <span class="ml-auto bg-orange-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">12</span>
+            </a>
+            <a href="#"
+                class="flex items-center px-4 py-3 text-textmuted hover:text-primary hover:bg-orange-50 rounded-xl transition-all group font-medium">
+                <i class="ph ph-users text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Clientes</span>
+            </a>
+            <a href="#"
+                class="flex items-center px-4 py-3 text-textmuted hover:text-primary hover:bg-orange-50 rounded-xl transition-all group font-medium">
+                <i class="ph ph-calendar-check text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Agenda</span>
+            </a>
+
+            <div class="mt-8 mb-4 border-t border-stone-200/50 mx-4"></div>
+            <p class="px-4 text-[10px] font-bold text-textmuted uppercase tracking-widest mb-4">Administración</p>
+            <a href="#"
+                class="flex items-center px-4 py-3 text-textmuted hover:text-primary hover:bg-orange-50 rounded-xl transition-all group font-medium">
+                <i class="ph ph-devices text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Dispositivos</span>
+                <span class="ml-auto w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
+            </a>
+            <a href="#"
+                class="flex items-center px-4 py-3 text-textmuted hover:text-primary hover:bg-orange-50 rounded-xl transition-all group font-medium">
+                <i class="ph ph-chart-line-up text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Reportes</span>
+            </a>
+        </nav>
+        <div class="p-6 border-t border-stone-200/50 bg-white/30">
+            <div class="flex items-center cursor-pointer group">
+                <div class="relative">
+                    <img src="https://i.pravatar.cc/150?img=11" alt="Profile"
+                        class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-primary transition-colors">
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
+                    </div>
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-bold text-textmain group-hover:text-primary transition-colors">Admin General
+                    </p>
+                    <p class="text-xs text-textmuted">Administrador</p>
+                </div>
+                <i class="ph ph-sign-out text-textmuted hover:text-red-500 transition-colors"></i>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden z-10">
+
+        <!-- Topbar -->
+        <header
+            class="h-20 flex items-center justify-between px-10 glass border-b border-stone-200/50 shrink-0 sticky top-0 z-30">
+            <div
+                class="flex items-center bg-white/60 border border-stone-200/80 hover:border-primary/50 hover:bg-white transition-all rounded-full px-5 py-2.5 w-[500px] shadow-sm backdrop-blur-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white">
+                <i class="ph ph-magnifying-glass text-textmuted text-lg mr-3"></i>
+                <input type="text" placeholder="Buscar ticket, cliente, ID o palabras clave..."
+                    class="bg-transparent border-none outline-none w-full text-sm font-medium text-textmain placeholder-textmuted/70">
+                <div
+                    class="hidden md:flex items-center justify-center px-2 py-1 bg-stone-100 rounded text-[10px] font-bold text-stone-500 border border-stone-200">
+                    ⌘K</div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button
+                    class="w-10 h-10 rounded-full bg-white/60 border border-stone-200 flex items-center justify-center text-textmuted hover:text-primary hover:border-primary/30 hover:bg-orange-50 transition-all">
+                    <i class="ph ph-question text-xl"></i>
+                </button>
+                <div class="relative">
+                    <button
+                        class="w-10 h-10 rounded-full bg-white/60 border border-stone-200 flex items-center justify-center text-textmuted hover:text-primary hover:border-primary/30 hover:bg-orange-50 transition-all">
+                        <i class="ph ph-bell-ringing text-xl"></i>
+                    </button>
+                    <span class="absolute top-0 right-0 flex h-3 w-3">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-white"></span>
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Scrollable Area -->
+        <div class="flex-1 overflow-auto p-10 pb-20">
+
+            <!-- Header Section -->
+            <div class="flex justify-between items-end mb-10 animate-fade-in-up opacity-0">
+                <div>
+                    <h1 class="text-4xl font-extrabold mb-2 tracking-tight text-textmain">Vista General <span
+                            class="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Premium</span>
+                    </h1>
+                    <p class="text-textmuted text-lg font-medium">Monitorea el estado de soporte y atención en tiempo
+                        real.</p>
+                </div>
+                <div class="flex gap-4">
+                    <button
+                        class="glass border border-stone-200 hover:border-primary hover:text-primary text-textmain px-5 py-3 rounded-xl font-semibold shadow-sm flex items-center transition-all hover:shadow-md">
+                        <i class="ph ph-funnel text-xl mr-2"></i>
+                        Filtros
+                    </button>
+                    <button
+                        class="bg-gradient-to-r from-primary to-primary_hover text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-primary/30 flex items-center transition-all hover:scale-105 active:scale-95 border border-orange-400">
+                        <i class="ph-bold ph-plus text-xl mr-2"></i>
+                        Crear Ticket
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-6 mb-10">
+
+                <div
+                    class="glass p-6 rounded-2xl border border-stone-200 shadow-sm relative overflow-hidden card-hover animate-fade-in-up opacity-0 stagger-1 group">
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500">
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-orange-100 text-primary flex items-center justify-center border border-orange-200">
+                            <i class="ph-fill ph-ticket text-2xl"></i>
+                        </div>
+                        <span
+                            class="text-xs font-bold px-2.5 py-1 bg-green-50 text-green-600 rounded-full flex items-center border border-green-200">
+                            <i class="ph-bold ph-trend-up mr-1 text-[10px]"></i> 12%
+                        </span>
+                    </div>
+                    <h3 class="text-4xl font-black mb-1 relative z-10 text-stone-800">142</h3>
+                    <p class="text-textmuted text-sm font-semibold relative z-10 uppercase tracking-wider">Tickets
+                        Abiertos</p>
+                </div>
+
+                <div
+                    class="glass p-6 rounded-2xl border border-stone-200 shadow-sm relative overflow-hidden card-hover animate-fade-in-up opacity-0 stagger-2 group">
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all duration-500">
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                            <i class="ph-fill ph-clock-countdown text-2xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-4xl font-black mb-1 relative z-10 text-stone-800">28</h3>
+                    <p class="text-textmuted text-sm font-semibold relative z-10 uppercase tracking-wider">Pendientes de
+                        Asignación</p>
+                </div>
+
+                <div
+                    class="glass p-6 rounded-2xl border border-stone-200 shadow-sm relative overflow-hidden card-hover animate-fade-in-up opacity-0 stagger-3 group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-rose-400"></div>
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all duration-500">
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center border border-red-200">
+                            <i class="ph-fill ph-warning-circle text-2xl"></i>
+                        </div>
+                        <span
+                            class="text-xs font-bold px-2.5 py-1 bg-red-50 text-red-600 rounded-full flex items-center border border-red-200 animate-pulse">
+                            Vencidos
+                        </span>
+                    </div>
+                    <h3 class="text-4xl font-black mb-1 relative z-10 text-red-600">5</h3>
+                    <p class="text-textmuted text-sm font-semibold relative z-10 uppercase tracking-wider">Fuera de SLA
+                    </p>
+                </div>
+
+                <div
+                    class="glass p-6 rounded-2xl border border-stone-200 shadow-sm relative overflow-hidden card-hover animate-fade-in-up opacity-0 stagger-4 group">
+                    <div
+                        class="absolute -right-6 -top-6 w-32 h-32 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-all duration-500">
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-green-50 text-green-500 flex items-center justify-center border border-green-200">
+                            <i class="ph-fill ph-check-circle text-2xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-4xl font-black mb-1 relative z-10 text-stone-800">109</h3>
+                    <p class="text-textmuted text-sm font-semibold relative z-10 uppercase tracking-wider">Resueltos Hoy
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Two-column Layout -->
+            <div class="grid grid-cols-3 gap-8 mb-10">
+                <!-- Data Table -->
+                <div
+                    class="col-span-2 flex flex-col glass border border-stone-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in-up opacity-0 stagger-3">
+                    <div class="px-8 py-5 border-b border-stone-200/50 flex justify-between items-center bg-white/40">
+                        <h2 class="text-lg font-bold flex items-center text-textmain">
+                            Tickets Prioritarios
+                        </h2>
+                        <button
+                            class="text-primary font-semibold text-sm hover:text-primary_hover transition-colors flex items-center bg-white px-3 py-1.5 rounded-lg border border-stone-200 shadow-sm">
+                            Ver listado completo <i class="ph-bold ph-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                    <div class="p-0 overflow-auto flex-1 bg-white/50">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr
+                                    class="text-textmuted text-[11px] uppercase tracking-widest border-b border-stone-200 bg-stone-50/50 backdrop-blur-sm">
+                                    <th class="py-4 px-8 font-bold">Ticket & Cliente</th>
+                                    <th class="py-4 px-8 font-bold">Diagnóstico</th>
+                                    <th class="py-4 px-8 font-bold">Estado</th>
+                                    <th class="py-4 px-8 font-bold text-right">Técnico</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <!-- Row 1 -->
+                                <tr
+                                    class="border-b border-stone-200 hover:bg-orange-50/50 transition-colors group cursor-pointer relative">
+                                    <td class="py-5 px-8">
+                                        <div class="flex items-center">
+                                            <div
+                                                class="w-2 h-2 rounded-full bg-red-500 mr-3 shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+                                            </div>
+                                            <div>
+                                                <p
+                                                    class="font-black text-textmain mb-0.5 group-hover:text-primary transition-colors">
+                                                    TKT-000006</p>
+                                                <p class="text-xs font-semibold text-textmuted flex items-center">L001 -
+                                                    Banca Principal</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-5 px-8">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="px-2.5 py-1 bg-stone-100 text-stone-600 rounded border border-stone-200 text-xs font-bold flex items-center"><i
+                                                    class="ph-fill ph-desktop mr-1"></i> PC</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-5 px-8">
+                                        <span
+                                            class="px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-bold border border-red-200 flex items-center w-max">
+                                            <i class="ph-bold ph-warning mr-1"></i> Vencido
+                                        </span>
+                                    </td>
+                                    <td class="py-5 px-8 text-right">
+                                        <div class="flex items-center justify-end">
+                                            <span class="text-xs font-semibold text-textmuted mr-3">Sin Asignar</span>
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-stone-200 border border-stone-300 border-dashed flex items-center justify-center text-stone-400">
+                                                <i class="ph-bold ph-user-plus"></i>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Row 2 -->
+                                <tr
+                                    class="border-b border-stone-200 hover:bg-orange-50/50 transition-colors group cursor-pointer relative">
+                                    <td class="py-5 px-8">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 rounded-full bg-amber-500 mr-3"></div>
+                                            <div>
+                                                <p
+                                                    class="font-black text-textmain mb-0.5 group-hover:text-primary transition-colors">
+                                                    TKT-000007</p>
+                                                <p class="text-xs font-semibold text-textmuted flex items-center">L001 -
+                                                    Banca Principal</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-5 px-8">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="px-2.5 py-1 bg-stone-100 text-stone-600 rounded border border-stone-200 text-xs font-bold flex items-center"><i
+                                                    class="ph-fill ph-desktop mr-1"></i> PC</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-5 px-8">
+                                        <span
+                                            class="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold border border-amber-200 flex items-center w-max">
+                                            <i class="ph-bold ph-clock mr-1"></i> Pendiente
+                                        </span>
+                                    </td>
+                                    <td class="py-5 px-8 text-right">
+                                        <div class="flex items-center justify-end">
+                                            <span class="text-xs font-semibold text-textmain mr-3">Alex T.</span>
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="Tech"
+                                                class="w-8 h-8 rounded-full border border-stone-200">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Row 3 -->
+                                <tr class="hover:bg-orange-50/50 transition-colors group cursor-pointer relative">
+                                    <td class="py-5 px-8">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 rounded-full bg-green-500 mr-3"></div>
+                                            <div>
+                                                <p
+                                                    class="font-black text-textmain mb-0.5 group-hover:text-primary transition-colors">
+                                                    TKT-000005</p>
+                                                <p class="text-xs font-semibold text-textmuted flex items-center">L001 -
+                                                    Banca Principal</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-5 px-8">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="px-2.5 py-1 bg-stone-100 text-stone-600 rounded border border-stone-200 text-xs font-bold flex items-center"><i
+                                                    class="ph-fill ph-lightning mr-1"></i> Eléctrica</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-5 px-8">
+                                        <span
+                                            class="px-3 py-1 bg-green-50 text-green-600 rounded-full text-xs font-bold border border-green-200 flex items-center w-max">
+                                            <i class="ph-bold ph-check mr-1"></i> En Proceso
+                                        </span>
+                                    </td>
+                                    <td class="py-5 px-8 text-right">
+                                        <div class="flex items-center justify-end">
+                                            <span class="text-xs font-semibold text-textmain mr-3">María R.</span>
+                                            <img src="https://i.pravatar.cc/150?img=5" alt="Tech"
+                                                class="w-8 h-8 rounded-full border border-stone-200">
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Live Map / Activity -->
+                <div
+                    class="col-span-1 glass border border-stone-200 rounded-2xl shadow-sm p-0 flex flex-col relative overflow-hidden animate-fade-in-up opacity-0 stagger-4">
+                    <div
+                        class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 z-0 pointer-events-none">
+                    </div>
+
+                    <div
+                        class="px-6 py-5 border-b border-stone-200/50 bg-white/40 relative z-10 flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center text-textmain">
+                            <i class="ph-fill ph-pulse text-red-500 mr-2 animate-pulse"></i>
+                            Feed de Operaciones
+                        </h2>
+                    </div>
+
+                    <div class="p-6 relative z-10 space-y-6 flex-1 bg-white/30 overflow-y-auto">
+
+                        <!-- Solicuitud de Dispositivo Card -->
+                        <div
+                            class="bg-white rounded-xl border border-amber-200 p-4 shadow-sm relative overflow-hidden group">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
+                            <div class="flex justify-between items-start mb-2">
+                                <span
+                                    class="bg-amber-100 text-amber-700 text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wider">Aprobación
+                                    Pendiente</span>
+                                <span class="text-[10px] font-medium text-textmuted">Hace 2 min</span>
+                            </div>
+                            <p class="text-sm font-bold text-textmain leading-tight mb-1">Nuevo Dispositivo Móvil</p>
+                            <p class="text-xs text-textmuted mb-3">El usuario <b>carlos_tec</b> está solicitando acceso
+                                desde la app.</p>
+                            <div class="flex gap-2 mt-2">
+                                <button
+                                    class="flex-1 bg-primary hover:bg-primary_hover text-white text-xs font-bold py-2 rounded-lg transition-colors">Aprobar</button>
+                                <button
+                                    class="px-3 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-bold rounded-lg transition-colors">Rechazar</button>
+                            </div>
+                        </div>
+
+                        <!-- Ticket Log -->
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 border border-green-200">
+                                    <i class="ph-bold ph-check"></i>
+                                </div>
+                                <div class="w-0.5 h-full bg-stone-200 mt-2"></div>
+                            </div>
+                            <div class="pb-6">
+                                <p class="text-sm font-bold text-textmain">Ticket #TK-8019 Cerrado</p>
+                                <p class="text-xs text-textmuted leading-relaxed mt-1">El técnico resolvió el problema
+                                    eléctrico en la sucursal Norte.</p>
+                            </div>
+                        </div>
+
+                        <!-- Ticket Log -->
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <img src="https://i.pravatar.cc/150?img=11" alt="Tech"
+                                    class="w-8 h-8 rounded-full border-2 border-white shadow-sm shrink-0">
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-textmain">Comentario en #TK-8021</p>
+                                <div
+                                    class="bg-stone-100 p-3 rounded-tr-xl rounded-b-xl border border-stone-200 mt-2 relative">
+                                    <div
+                                        class="absolute -left-2 top-2 w-0 h-0 border-t-4 border-t-transparent border-r-8 border-r-stone-100 border-b-4 border-b-transparent">
+                                    </div>
+                                    <p class="text-xs text-stone-700 font-medium italic">"Llegando al local en 5 minutos
+                                        para revisar el router físico."</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+
+</html>

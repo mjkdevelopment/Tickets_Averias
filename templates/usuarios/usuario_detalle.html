@@ -2,14 +2,96 @@
 {% block title %}Detalle usuario{% endblock %}
 
 {% block content %}
-<h4>Usuario: {{ usuario.username }}</h4>
-<hr>
+<div class="animate-fade-in-up opacity-0 stagger-1 max-w-3xl mx-auto">
 
-<p><strong>Nombre:</strong> {{ usuario.first_name }} {{ usuario.last_name }}</p>
-<p><strong>Email:</strong> {{ usuario.email }}</p>
-<p><strong>Rol:</strong> {{ usuario.rol }}</p>
-<p><strong>Activo:</strong> {{ usuario.is_active|yesno:"Sí,No" }}</p>
+    <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-textmain flex items-center">
+                <i class="ph-fill ph-identification-card text-primary mr-3 text-3xl"></i>
+                Detalle de Usuario
+            </h1>
+            <p class="text-textmuted font-medium mt-1">Información del perfil de acceso al sistema.</p>
+        </div>
 
-<a href="{% url 'usuario_editar' usuario.pk %}" class="btn btn-primary btn-sm">Editar</a>
-<a href="{% url 'usuarios_lista' %}" class="btn btn-secondary btn-sm">Volver</a>
+        <div class="flex gap-2">
+            <a href="{% url 'usuarios_lista' %}"
+                class="bg-white border border-stone-200 text-textmuted hover:text-textmain px-4 py-2 rounded-xl font-bold shadow-sm transition-all active:scale-95 flex items-center">
+                <i class="ph-bold ph-arrow-left mr-2"></i>
+                Lista
+            </a>
+            <a href="{% url 'usuario_editar' usuario.pk %}"
+                class="bg-gradient-to-r from-primary to-primary_hover text-white px-5 py-2 rounded-xl font-bold shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 border border-orange-400 flex items-center">
+                <i class="ph-bold ph-pencil-simple mr-2"></i>
+                Editar
+            </a>
+        </div>
+    </div>
+
+    <div class="glass border border-stone-200 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-stone-400 to-stone-500"></div>
+
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+            <div class="shrink-0 flex flex-col items-center">
+                <div
+                    class="w-32 h-32 rounded-3xl bg-orange-50 border border-orange-100 text-primary flex items-center justify-center font-black text-5xl shadow-sm mb-4">
+                    {{ usuario.username|first|upper }}
+                </div>
+
+                <span class="inline-flex px-3 py-1.5 rounded-lg text-xs font-bold border uppercase tracking-widest shadow-sm
+                    {% if usuario.rol == 'ADMIN' %} bg-purple-50 text-purple-600 border-purple-200
+                    {% elif usuario.rol == 'TECNICO' %} bg-blue-50 text-blue-600 border-blue-200
+                    {% else %} bg-stone-50 text-stone-600 border-stone-200 {% endif %}">
+                    <i
+                        class="{% if usuario.rol == 'ADMIN' %}ph-fill ph-shield-star{% elif usuario.rol == 'TECNICO' %}ph-fill ph-wrench{% else %}ph-fill ph-storefront{% endif %} mr-1.5 text-[14px]"></i>
+                    {{ usuario.rol }}
+                </span>
+            </div>
+
+            <div class="flex-1 space-y-6 w-full">
+                <div class="border-b border-stone-200/60 pb-5">
+                    <p class="text-xs font-bold text-textmuted uppercase tracking-widest mb-1">Nombre de usuario</p>
+                    <h2 class="text-2xl font-black text-textmain">{{ usuario.username }}</h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-xs font-bold text-textmuted uppercase tracking-widest mb-1 flex items-center">
+                            <i class="ph-bold ph-user mr-1.5"></i> Nombre Completo
+                        </p>
+                        <p class="font-semibold text-textmain text-lg">{{ usuario.first_name }} {{ usuario.last_name }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-textmuted uppercase tracking-widest mb-1 flex items-center">
+                            <i class="ph-bold ph-envelope mr-1.5"></i> Correo Electrónico
+                        </p>
+                        {% if usuario.email %}
+                        <p class="font-semibold text-textmain">{{ usuario.email }}</p>
+                        {% else %}
+                        <p class="font-medium text-stone-400 italic">No especificado</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div
+                    class="bg-stone-50/50 p-4 rounded-xl border border-stone-100 flex justify-between items-center mt-4">
+                    <p class="text-xs font-bold text-textmuted uppercase tracking-widest">Estado de la cuenta</p>
+                    {% if usuario.is_active %}
+                    <span
+                        class="text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                        Cuenta Activa
+                    </span>
+                    {% else %}
+                    <span
+                        class="text-stone-500 bg-stone-100 border border-stone-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-stone-400 mr-2"></span>
+                        Cuenta Inactiva
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

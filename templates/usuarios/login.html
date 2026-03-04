@@ -2,35 +2,89 @@
 {% block title %}Iniciar sesión{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-4">
-    <div class="card shadow-sm">
-      <div class="card-header text-center">
-        <h5 class="mb-0">Iniciar sesión</h5>
+<div class="min-h-[80vh] flex items-center justify-center -mt-10">
+  <div class="w-full max-w-sm animate-fade-in-up opacity-0 stagger-1">
+
+    <div class="text-center mb-8">
+      <div
+        class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center shadow-lg shadow-primary/30 mx-auto mb-4">
+        <i class="ph-bold ph-ticket text-3xl"></i>
       </div>
-
-      <div class="card-body">
-        <form method="post" action="{% url 'login' %}">
-          {% csrf_token %}
-
-          {{ form.non_field_errors }}
-
-          <div class="mb-3">
-            <label class="form-label">{{ form.username.label }}</label>
-            {{ form.username }}
-            {{ form.username.errors }}
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">{{ form.password.label }}</label>
-            {{ form.password }}
-            {{ form.password.errors }}
-          </div>
-
-          <button type="submit" class="btn btn-primary w-100">Entrar</button>
-        </form>
-      </div>
+      <h1 class="text-3xl font-black tracking-tight text-textmain">Botija<span class="text-primary">Tickets</span></h1>
+      <p class="text-textmuted font-medium mt-1">Ingresa para gestionar tus averías</p>
     </div>
+
+    <div class="glass border border-stone-200 rounded-3xl p-8 shadow-sm relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent"></div>
+
+      <form method="post" action="{% url 'login' %}" class="space-y-6 ticket-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div
+          class="bg-red-50/80 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-semibold flex items-center shadow-sm">
+          <i class="ph-fill ph-warning-circle mr-2 text-xl"></i>
+          {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+          <label class="block text-xs font-bold text-textmuted uppercase tracking-widest mb-2">{{ form.username.label
+            }}</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="block text-xs font-bold text-textmuted uppercase tracking-widest mb-2 flex justify-between">
+            <span>{{ form.password.label }}</span>
+            <!-- Extra feature for future if needed -->
+            <span class="text-primary hover:underline cursor-pointer lowercase normal-case tracking-normal">¿Olvidaste
+              tu contraseña?</span>
+          </label>
+          {{ form.password }}
+          {% if form.password.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.password.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <button type="submit"
+          class="w-full bg-gradient-to-r from-primary to-primary_hover text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-primary/30 flex justify-center items-center transition-all hover:scale-[1.02] active:scale-95 border border-orange-400 mt-8">
+          Entrar al Sistema
+          <i class="ph-bold ph-arrow-right ml-2 text-lg"></i>
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-xs font-medium text-stone-400 mt-8">
+      &copy; 2026 Botija Tickets. Todos los derechos reservados.
+    </p>
   </div>
 </div>
+
+<style>
+  /* CSS para inputs inyectado de forma local para no depender de otros archivos por si acaso */
+  .ticket-form input[type="text"],
+  .ticket-form input[type="password"] {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #d6d3d1;
+    background-color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1c1917;
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  .ticket-form input[type="text"]:focus,
+  .ticket-form input[type="password"]:focus {
+    background-color: #ffffff;
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  }
+</style>
 {% endblock %}

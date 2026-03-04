@@ -1,243 +1,392 @@
 {% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
-    <meta charset="utf-8">
-    <title>{% block title %}Tickets de Averías{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap 5 desde CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Botija Tickets{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: {
+                        primary: '#F97316',
+                        primary_hover: '#EA580C',
+                        secondary: '#FB923C',
+                        accent: '#FBBF24',
+                        basebg: '#F5F5F4',
+                        surface: 'rgba(255, 255, 255, 0.95)',
+                        surface_solid: '#FFFFFF',
+                        textmain: '#1C1917',
+                        textmuted: '#78716C',
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        pulseRed: {
+                            '0%, 100%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0.7)' },
+                            '50%': { boxShadow: '0 0 0 10px rgba(239, 68, 68, 0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --primary-color: #F97316;
-            --primary-dark: #ea580c;
-            --primary-light: #fb923c;
-        }
-
         body {
-            background-color: #f5f5f5;
-        }
-
-        .navbar-brand {
-            font-weight: bold;
-        }
-
-        .premium-navbar {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
-        }
-
-        .content-wrapper {
-            padding-top: 1.5rem;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-            border: none;
-            box-shadow: 0 4px 6px rgba(249, 115, 22, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover,
-        .btn-primary:focus,
-        .btn-primary:active {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            box-shadow: 0 6px 12px rgba(249, 115, 22, 0.3) !important;
-            transform: translateY(-1px);
-        }
-
-        /* Responsive improvements */
-        @media (max-width: 768px) {
-            .table-responsive {
-                font-size: 0.875rem;
-            }
-
-            .btn-sm {
-                font-size: 0.75rem;
-                padding: 0.25rem 0.5rem;
-            }
-
-            .card-body {
-                padding: 0.75rem;
-            }
-
-            h2,
-            h3 {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Premium ticket cards */
-        .ticket-card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            background-color: theme('colors.basebg');
+            color: theme('colors.textmain');
             overflow: hidden;
+        }
+
+        .glass {
+            background: theme('colors.surface');
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            border-radius: 1rem;
+        }
+
+        /* NEON SNAKE ANIMATED BORDER */
+        .neon-snake {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            border: none !important;
+        }
+
+        .neon-snake::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            height: 150%;
+            background: conic-gradient(transparent, transparent, transparent, #F97316, #FBBF24);
+            transform-origin: center;
+            animation: snakeRun 8s linear infinite;
+            z-index: -2;
+            translate: -50% -50%;
+        }
+
+        .neon-snake::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            /* Grosor del borde */
+            background: #FFFFFF;
+            /* Fondo solido interior para ocultar el bloque central del neón */
+            border-radius: calc(1rem - 2px);
+            z-index: -1;
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes snakeRun {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* TICKET SHAPE */
+        .ticket-shape {
+            position: relative;
+            /* Recortes de ticket usando mask-image con CSS Variables para el tamaño */
+            --r: 12px;
+            /* radio de los recortes */
+            mask: radial-gradient(var(--r) at 0 50%, transparent 98%, #000) -var(--r) 0 / 100% 100%,
+                radial-gradient(var(--r) at 100% 50%, transparent 98%, #000) var(--r) 0 / 100% 100%;
+            -webkit-mask: radial-gradient(var(--r) at 0 50%, transparent 98%, #000) -var(--r) 0 / 100% 100%,
+                radial-gradient(var(--r) at 100% 50%, transparent 98%, #000) var(--r) 0 / 100% 100%;
+            background: #FFFFFF;
+        }
+
+        /* Para dibujar la linea punteada clasica del ticket */
+        .ticket-divider {
+            border-bottom: 2px dashed rgba(0, 0, 0, 0.1);
             position: relative;
         }
 
-        .ticket-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, var(--primary-light) 0%, var(--primary-dark) 100%);
+        .alert-pulse {
+            animation: pulseRed 2s infinite;
+            border-color: rgba(239, 68, 68, 0.5) !important;
         }
 
-        .ticket-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.15) !important;
+        .badge-pulse {
+            animation: badgePulse 1.5s ease-in-out infinite;
         }
 
-        .ticket-card .card-body {
-            padding: 0.75rem 0.75rem 0.75rem 1rem;
-        }
-
-        .ticket-number {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #495057;
-            font-family: 'Courier New', monospace;
-        }
-
-        .ticket-local {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #212529;
-            margin: 0.15rem 0 0.1rem 0;
-            line-height: 1.2;
-        }
-
-        .ticket-category {
-            font-size: 0.8rem;
-            color: #6c757d;
-            margin-bottom: 0.5rem;
-            line-height: 1.2;
-        }
-
-        .badge-sla {
-            font-size: 0.7rem;
-            padding: 0.3rem 0.5rem;
-            font-weight: 600;
-        }
-
-        .badge-sla.vencido {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            animation: pulse-danger 2s ease-in-out infinite;
-        }
-
-        .badge-sla.ok {
-            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-        }
-
-        .badge-sla.proximo {
-            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-            color: #212529;
-        }
-
-        @keyframes pulse-danger {
+        @keyframes badgePulse {
 
             0%,
             100% {
-                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+                opacity: 1;
+                transform: scale(1);
             }
 
             50% {
-                box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
+                opacity: 0.6;
+                transform: scale(1.1);
             }
         }
 
-        .badge-estado {
-            font-size: 0.7rem;
-            padding: 0.3rem 0.5rem;
-            font-weight: 600;
-            text-transform: uppercase;
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .tickets-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 0.75rem;
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.15), 0 10px 10px -5px rgba(249, 115, 22, 0.05);
         }
 
-        @media (max-width: 576px) {
-            .tickets-grid {
-                grid-template-columns: 1fr;
-                gap: 0.65rem;
-            }
+        .stagger-1 {
+            animation-delay: 100ms;
         }
 
-        .ticket-meta {
-            font-size: 0.75rem;
-            color: #6c757d;
+        .stagger-2 {
+            animation-delay: 200ms;
+        }
+
+        .stagger-3 {
+            animation-delay: 300ms;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #D6D3D1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #A8A29E;
+        }
+
+        .mobile-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .mobile-content {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark premium-navbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">Botija Tickets</a>
+<body class="antialiased h-screen flex relative selection:bg-primary/30 selection:text-primary">
 
-            {% if user.is_authenticated %}
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'tickets_lista' %}">Tickets</a>
-                    </li>
-
-                    {% if user.es_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'usuarios_lista' %}">Usuarios</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'reportes_dashboard' %}">Reportes</a>
-                    </li>
-                    {% endif %}
-                </ul>
-
-                <span class="navbar-text me-3">
-                    {{ user.username }}
-                </span>
-                <a class="btn btn-outline-light btn-sm" href="{% url 'logout' %}">Cerrar sesión</a>
-            </div>
-            {% endif %}
+    <!-- Animated Background Blobs -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div
+            class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob">
         </div>
-    </nav>
-
-    <div class="container content-wrapper">
-        <!-- Mensajes de Django -->
-        {% if messages %}
-        <div class="mb-3">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
+        <div class="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
+            style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[45rem] h-[45rem] bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
+            style="animation-delay: 4s;"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% if user.is_authenticated %}
+    <!-- DESKTOP SIDEBAR (Hidden on Mobile) -->
+    <aside class="hidden md:flex w-64 flex-col glass z-20 transition-all border-r border-stone-200/50">
+        <div class="h-20 flex items-center px-8 border-b border-stone-200/50">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center mr-3 shadow-lg shadow-primary/30">
+                <i class="ph-bold ph-ticket text-xl"></i>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight">Botija<span class="text-primary">Tickets</span></span>
+        </div>
+        <nav class="flex-1 px-4 py-8 space-y-2 overflow-y-auto">
+            <p class="px-4 text-[10px] font-bold text-textmuted uppercase tracking-widest mb-4">Menú Principal</p>
+
+            <a href="{% url 'dashboard' %}"
+                class="flex items-center px-4 py-3 {% if request.resolver_match.url_name == 'dashboard' %}bg-gradient-to-r from-primary to-primary_hover text-white shadow-lg shadow-primary/25{% else %}text-textmuted hover:text-primary hover:bg-orange-50{% endif %} rounded-xl transition-all group font-medium">
+                <i
+                    class="{% if request.resolver_match.url_name == 'dashboard' %}ph-fill{% else %}ph{% endif %} ph-squares-four text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Dashboard</span>
+            </a>
+
+            <a href="{% url 'tickets_lista' %}"
+                class="flex items-center px-4 py-3 {% if 'ticket' in request.resolver_match.url_name %}bg-gradient-to-r from-primary to-primary_hover text-white shadow-lg shadow-primary/25{% else %}text-textmuted hover:text-primary hover:bg-orange-50{% endif %} rounded-xl transition-all group font-medium">
+                <i
+                    class="{% if 'ticket' in request.resolver_match.url_name %}ph-fill{% else %}ph{% endif %} ph-list-dashes text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Tickets</span>
+            </a>
+
+            {% if user.es_admin %}
+            <div class="mt-8 mb-4 border-t border-stone-200/50 mx-4"></div>
+            <p class="px-4 text-[10px] font-bold text-textmuted uppercase tracking-widest mb-4">Administración</p>
+            <a href="{% url 'usuarios_lista' %}"
+                class="flex items-center px-4 py-3 {% if 'usuario' in request.resolver_match.url_name %}bg-gradient-to-r from-primary to-primary_hover text-white shadow-lg shadow-primary/25{% else %}text-textmuted hover:text-primary hover:bg-orange-50{% endif %} rounded-xl transition-all group font-medium">
+                <i class="ph ph-users text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Usuarios</span>
+            </a>
+            <a href="{% url 'reportes_dashboard' %}"
+                class="flex items-center px-4 py-3 {% if 'reporte' in request.resolver_match.url_name %}bg-gradient-to-r from-primary to-primary_hover text-white shadow-lg shadow-primary/25{% else %}text-textmuted hover:text-primary hover:bg-orange-50{% endif %} rounded-xl transition-all group font-medium">
+                <i class="ph ph-chart-line-up text-xl mr-3 group-hover:text-primary transition-colors"></i>
+                <span class="tracking-wide">Reportes</span>
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="p-6 border-t border-stone-200/50 bg-white/30">
+            <div class="flex items-center group">
+                <div class="relative">
+                    <div
+                        class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-orange-200 text-orange-600 flex items-center justify-center font-bold">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
+                    </div>
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-bold text-textmain group-hover:text-primary transition-colors">
+                        {{ user.username }}
+                    </p>
+                    <p class="text-xs text-textmuted">{{ user.get_rol_display }}</p>
+                </div>
+                <a href="{% url 'logout' %}" class="text-textmuted hover:text-red-500 transition-colors p-2 text-xl"
+                    title="Cerrar sesión">
+                    <i class="ph ph-sign-out"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden z-10 w-full relative">
+
+        {% if user.is_authenticated %}
+        <!-- DESKTOP TOPBAR -->
+        <header
+            class="hidden md:flex h-20 items-center justify-end px-10 glass border-b border-stone-200/50 shrink-0 sticky top-0 z-30">
+        </header>
+
+        <!-- MOBILE HEADER -->
+        <header
+            class="flex md:hidden pt-8 px-6 pb-4 relative z-20 justify-between items-end shrink-0 glass border-b border-stone-200/50 rounded-b-3xl shadow-sm">
+            <div>
+                <p class="text-xs font-semibold text-textmuted mb-0.5">Buenos días,</p>
+                <h1 class="text-xl font-black tracking-tight text-textmain">
+                    {{ user.first_name|default:user.username }}
+                    <span class="text-primary">{{ user.last_name|default:"" }}</span>
+                </h1>
+            </div>
+            <div class="relative">
+                <div
+                    class="w-10 h-10 rounded-full border-2 border-white shadow-md bg-orange-200 text-orange-600 flex items-center justify-center font-bold">
+                    {{ user.username|first|upper }}
+                </div>
+                <div
+                    class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-stone-50 animate-pulse">
+                </div>
+            </div>
+        </header>
+        {% endif %}
+
+        <!-- SCROLLABLE PAGE CONTENT -->
+        <!-- On mobile, add pb-24 to avoid bottom nav overlaying content -->
+        <div class="flex-1 overflow-auto mobile-content p-4 md:p-10 pb-28 md:pb-20 relative z-10">
+
+            <!-- Django Messages -->
+            {% if messages %}
+            <div class="mb-6 space-y-3 z-50">
+                {% for message in messages %}
+                <div
+                    class="p-4 rounded-xl border {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-700{% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-700{% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %} flex justify-between items-center shadow-sm">
+                    <div class="flex items-center">
+                        <i
+                            class="ph-fill {% if message.tags == 'error' %}ph-warning-circle text-red-500{% elif message.tags == 'success' %}ph-check-circle text-green-500{% else %}ph-info text-blue-500{% endif %} text-xl mr-3"></i>
+                        <span class="text-sm font-semibold">{{ message }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- ACTUAL TEMPLATE CONTENT -->
+            {% block content %}{% endblock %}
+        </div>
+
+        {% if user.is_authenticated %}
+        <!-- MOBILE BOTTOM NAVIGATION (Hidden on Desktop) -->
+        <nav
+            class="md:hidden absolute bottom-0 left-0 w-full glass pb-8 pt-4 px-6 z-50 rounded-t-[30px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-white/60">
+            <div class="flex justify-between items-center relative">
+
+                <a href="{% url 'dashboard' %}"
+                    class="flex flex-col items-center justify-center w-12 {% if request.resolver_match.url_name == 'dashboard' %}text-primary{% else %}text-textmuted{% endif %} group transition-colors">
+                    <div
+                        class="p-1.5 {% if request.resolver_match.url_name == 'dashboard' %}bg-orange-100 rounded-xl{% endif %} mb-1 transition-all">
+                        <i
+                            class="{% if request.resolver_match.url_name == 'dashboard' %}ph-fill{% else %}ph{% endif %} ph-house text-2xl"></i>
+                    </div>
+                    <span class="text-[10px] font-bold">Inicio</span>
+                </a>
+
+                <a href="{% url 'tickets_lista' %}"
+                    class="flex flex-col items-center justify-center w-12 {% if 'ticket' in request.resolver_match.url_name %}text-primary{% else %}text-textmuted{% endif %} transition-colors pr-8">
+                    <i
+                        class="{% if 'ticket' in request.resolver_match.url_name %}ph-fill{% else %}ph{% endif %} ph-list-dashes text-2xl mb-1"></i>
+                    <span class="text-[10px] font-semibold">Tickets</span>
+                </a>
+
+                <!-- Floating FAB for New Ticket -->
+                <div class="absolute left-1/2 -top-12 transform -translate-x-1/2">
+                    <a href="{% url 'ticket_crear' %}"
+                        class="w-16 h-16 rounded-full bg-gradient-to-b from-primary to-primary_hover text-white shadow-xl shadow-primary/40 flex items-center justify-center border-4 border-white active:scale-95 transition-transform">
+                        <i class="ph-bold ph-plus text-3xl"></i>
+                    </a>
+                </div>
+
+                <a href="{% url 'reportes_dashboard' %}"
+                    class="flex flex-col items-center justify-center w-12 {% if 'reporte' in request.resolver_match.url_name %}text-primary{% else %}text-textmuted{% endif %} transition-colors pl-8">
+                    <i
+                        class="{% if 'reporte' in request.resolver_match.url_name %}ph-fill{% else %}ph{% endif %} ph-chart-line-up text-2xl mb-1"></i>
+                    <span class="text-[10px] font-semibold">Reportes</span>
+                </a>
+
+                <a href="{% url 'logout' %}"
+                    class="flex flex-col items-center justify-center w-12 text-textmuted hover:text-red-500 transition-colors">
+                    <i class="ph ph-sign-out text-2xl mb-1"></i>
+                    <span class="text-[10px] font-semibold">Salir</span>
+                </a>
+
+            </div>
+        </nav>
+        {% endif %}
+    </main>
+
 </body>
 
 </html>

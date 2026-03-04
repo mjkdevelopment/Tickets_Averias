@@ -2,43 +2,121 @@
 {% block title %}Actualizar ticket {{ ticket.numero_ticket }}{% endblock %}
 
 {% block content %}
-<h2>Actualizar ticket {{ ticket.numero_ticket }}</h2>
-<hr>
+<div class="animate-fade-in-up opacity-0 stagger-1 max-w-2xl mx-auto">
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    <div class="mb-3">
-        <label class="form-label">{{ form.estado.label }}</label>
-        {{ form.estado }}
-        {{ form.estado.errors }}
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold tracking-tight text-textmain flex items-center">
+            <i class="ph-fill ph-wrench text-amber-500 mr-3 text-3xl"></i>
+            Actualizar Ticket
+        </h1>
+        <p class="text-textmuted font-medium mt-1">Ticket #{{ ticket.numero_ticket }} - {{ ticket.local.codigo }}</p>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">{{ form.solucion.label }}</label>
-        {{ form.solucion }}
-        {{ form.solucion.errors }}
-    </div>
+    <div class="glass border border-stone-200 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-500"></div>
 
-    <div class="mb-3">
-        <label class="form-label">{{ form.asignado_a.label }}</label>
-        {{ form.asignado_a }}
-        {{ form.asignado_a.errors }}
-    </div>
+        <form method="post" enctype="multipart/form-data" class="space-y-6 ticket-form">
+            {% csrf_token %}
 
-    <div class="mb-3">
-        <label class="form-label">{{ form.foto_reparacion.label }}</label>
-        {{ form.foto_reparacion }}
-        {{ form.foto_reparacion.errors }}
-        {% if ticket.foto_reparacion %}
-            <div class="mt-2">
-                <strong>Foto actual:</strong><br>
-                <img src="{{ ticket.foto_reparacion.url }}" class="img-fluid img-thumbnail" style="max-width: 300px;">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- ESTADO -->
+                <div class="form-group">
+                    <label class="block text-xs font-bold text-textmuted uppercase tracking-widest mb-2">{{
+                        form.estado.label }}</label>
+                    {{ form.estado }}
+                    {% if form.estado.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.estado.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ASIGNADO A -->
+                <div class="form-group">
+                    <label class="block text-xs font-bold text-textmuted uppercase tracking-widest mb-2">{{
+                        form.asignado_a.label }}</label>
+                    {{ form.asignado_a }}
+                    {% if form.asignado_a.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.asignado_a.errors.0 }}</p>
+                    {% endif %}
+                </div>
             </div>
-        {% endif %}
-    </div>
 
-    <button type="submit" class="btn btn-primary">Guardar cambios</button>
-    <a href="{% url 'ticket_detalle' ticket.pk %}" class="btn btn-secondary">Cancelar</a>
-</form>
+            <!-- SOLUCION -->
+            <div class="form-group">
+                <label class="block text-xs font-bold text-textmuted uppercase tracking-widest mb-2">{{
+                    form.solucion.label }}</label>
+                {{ form.solucion }}
+                {% if form.solucion.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.solucion.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- FOTO REPARACION -->
+            <div class="form-group pt-4 border-t border-stone-200/60">
+                <label class="block text-xs font-bold text-textmuted uppercase tracking-widest mb-2 flex items-center">
+                    <i class="ph-bold ph-camera mr-1.5 text-primary text-lg"></i> {{ form.foto_reparacion.label }}
+                </label>
+                {{ form.foto_reparacion }}
+                {% if form.foto_reparacion.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.foto_reparacion.errors.0 }}</p>
+                {% endif %}
+
+                {% if ticket.foto_reparacion %}
+                <div class="mt-4 p-4 bg-stone-50 rounded-xl border border-stone-200 inline-block">
+                    <strong class="text-xs text-textmuted uppercase tracking-widest mb-2 block">Foto actual:</strong>
+                    <img src="{{ ticket.foto_reparacion.url }}"
+                        class="rounded-lg shadow-sm border border-stone-200 max-w-[250px] object-cover">
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- BOTONES -->
+            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8 pt-6 border-t border-stone-200/60">
+                <a href="{% url 'ticket_detalle' ticket.pk %}"
+                    class="w-full sm:w-auto text-center px-6 py-3 bg-white border border-stone-200 text-textmain rounded-xl font-bold hover:bg-stone-50 transition-colors shadow-sm active:scale-[0.98]">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="w-full sm:w-auto bg-stone-900 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-stone-900/20 flex justify-center items-center transition-all hover:bg-black hover:scale-105 active:scale-95">
+                    <i class="ph-bold ph-check-circle text-xl mr-2 text-stone-400"></i>
+                    Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* CSS para inputs inyectado de forma local */
+    .ticket-form input[type="text"],
+    .ticket-form input[type="file"],
+    .ticket-form select,
+    .ticket-form textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #d6d3d1;
+        background-color: rgba(255, 255, 255, 0.8);
+        font-size: 0.875rem;
+        color: #1c1917;
+        transition: all 0.2s;
+        outline: none;
+    }
+
+    .ticket-form input[type="text"]:focus,
+    .ticket-form select:focus,
+    .ticket-form textarea:focus {
+        background-color: #ffffff;
+        border-color: #f97316;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    }
+
+    .ticket-form select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+</style>
 {% endblock %}

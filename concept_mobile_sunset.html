@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile App Concept - Botija Tickets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#F97316',
+                        primary_hover: '#EA580C',
+                        accent: '#FBBF24',
+                        basebg: '#F5F5F4',
+                        surface: 'rgba(255, 255, 255, 0.85)',
+                        textmain: '#1C1917',
+                        textmuted: '#78716C',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #E7E5E4;
+            /* Darker bg for desktop display */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Mobile Device Mockup Container */
+        .mobile-device {
+            width: 390px;
+            height: 844px;
+            /* iPhone 14 Pro size */
+            background-color: theme('colors.basebg');
+            border-radius: 50px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), inset 0 0 0 10px #1C1917;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Safe area notch/dynamic island mock */
+        .dynamic-island {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 35px;
+            background-color: #000;
+            border-radius: 20px;
+            z-index: 50;
+        }
+
+        /* No scrollbar for content */
+        .mobile-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .mobile-content {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .glass {
+            background: theme('colors.surface');
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .card-bg {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Animated Blobs */
+        @keyframes drift {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.05);
+            }
+
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .blob-1 {
+            animation: drift 8s infinite ease-in-out;
+        }
+
+        .blob-2 {
+            animation: drift 10s infinite ease-in-out reverse;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Mockup Frame -->
+    <div class="mobile-device flex flex-col relative text-textmain">
+
+        <div class="dynamic-island"></div>
+
+        <!-- Background effects -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div
+                class="blob-1 absolute -top-10 -right-20 w-80 h-80 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40">
+            </div>
+            <div
+                class="blob-2 absolute top-40 -left-20 w-64 h-64 bg-amber-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40">
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="pt-20 px-6 pb-4 relative z-10 flex justify-between items-end shrink-0">
+            <div>
+                <p class="text-sm font-semibold text-textmuted mb-1">Buenos días,</p>
+                <h1 class="text-2xl font-black tracking-tight text-textmain">Alex <span
+                        class="text-primary">Técnico</span></h1>
+            </div>
+            <div class="relative">
+                <img src="https://i.pravatar.cc/150?img=11" alt="Profile"
+                    class="w-12 h-12 rounded-full border-2 border-white shadow-md">
+                <div
+                    class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-stone-50 animate-pulse">
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Scrollable App Content -->
+        <main class="mobile-content flex-1 overflow-y-auto px-6 pb-32 relative z-10 space-y-6">
+
+            <!-- Quick Action Bar -->
+            <div class="flex gap-4">
+                <button
+                    class="flex-1 bg-gradient-to-br from-primary to-primary_hover text-white rounded-2xl p-4 shadow-lg shadow-primary/30 flex flex-col items-start active:scale-95 transition-transform">
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-3">
+                        <i class="ph-bold ph-plus text-lg"></i>
+                    </div>
+                    <span class="font-bold text-sm">Crear Ticket</span>
+                </button>
+                <button
+                    class="flex-1 card-bg rounded-2xl p-4 flex flex-col items-start active:scale-95 transition-transform">
+                    <div
+                        class="w-8 h-8 rounded-full bg-orange-100 text-primary border border-orange-200 flex items-center justify-center mb-3">
+                        <i class="ph-bold ph-qr-code text-lg"></i>
+                    </div>
+                    <span class="font-bold text-sm text-textmain">Escanear</span>
+                </button>
+            </div>
+
+            <!-- Dashboard Stats Horizontal Scroll -->
+            <div>
+                <h2 class="text-lg font-black mb-3 text-textmain">Resumen Diario</h2>
+                <div class="flex gap-4 overflow-x-auto pb-4 mobile-content -mx-6 px-6">
+                    <!-- Stat Card 1 -->
+                    <div class="shrink-0 w-36 card-bg rounded-2xl p-4 border-l-4 border-l-primary">
+                        <div class="flex justify-between items-center mb-2">
+                            <i class="ph-fill ph-ticket text-stone-400 text-xl"></i>
+                            <span
+                                class="text-[10px] font-bold bg-stone-200/50 px-2 py-0.5 rounded text-stone-600">HOY</span>
+                        </div>
+                        <p class="text-3xl font-black text-textmain">12</p>
+                        <p class="text-xs font-semibold text-textmuted mt-1">Asignados</p>
+                    </div>
+                    <!-- Stat Card 2 -->
+                    <div class="shrink-0 w-36 card-bg rounded-2xl p-4 border-l-4 border-l-red-500">
+                        <div class="flex justify-between items-center mb-2">
+                            <i class="ph-fill ph-warning-circle text-red-400 text-xl"></i>
+                        </div>
+                        <p class="text-3xl font-black text-red-600 mb-1">3</p>
+                        <p class="text-xs font-bold text-red-500 uppercase tracking-widest mt-1">Vencidos</p>
+                    </div>
+                    <!-- Stat Card 3 -->
+                    <div class="shrink-0 w-36 card-bg rounded-2xl p-4 border-l-4 border-l-green-500">
+                        <div class="flex justify-between items-center mb-2">
+                            <i class="ph-fill ph-check-circle text-green-400 text-xl"></i>
+                        </div>
+                        <p class="text-3xl font-black text-textmain mb-1">8</p>
+                        <p class="text-xs font-semibold text-textmuted mt-1">Completados</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Tickets List -->
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-black text-textmain">Tickets Urgentes</h2>
+                    <button class="text-primary text-sm font-bold">Ver todos</button>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Ticket Item 1 -->
+                    <div class="card-bg rounded-2xl p-4 active:scale-[0.98] transition-transform">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span
+                                    class="bg-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded inline-flex items-center mb-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse"></div>
+                                    SLA Vencido
+                                </span>
+                                <h3 class="font-extrabold text-sm leading-snug">TKT-000006</h3>
+                                <p class="text-xs font-semibold text-textmuted">L001 - Banca Principal</p>
+                            </div>
+                            <div
+                                class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-textmain">
+                                <i class="ph-fill ph-desktop text-lg"></i>
+                            </div>
+                        </div>
+                        <button
+                            class="w-full py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-bold text-textmain shadow-sm flex items-center justify-center">
+                            Gestionar Ticket <i class="ph-bold ph-arrow-right ml-2 text-primary"></i>
+                        </button>
+                    </div>
+
+                    <!-- Ticket Item 2 -->
+                    <div class="card-bg rounded-2xl p-4 active:scale-[0.98] transition-transform">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span
+                                    class="bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded inline-flex items-center mb-2">
+                                    En Progreso
+                                </span>
+                                <h3 class="font-extrabold text-sm leading-snug">TKT-000005</h3>
+                                <p class="text-xs font-semibold text-textmuted">L001 - Banca Principal</p>
+                            </div>
+                            <div
+                                class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-textmain">
+                                <i class="ph-fill ph-lightning text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Navigation with FAB -->
+        <nav class="absolute bottom-0 left-0 w-full glass pb-8 pt-4 px-6 z-50 rounded-b-[40px]">
+            <div class="flex justify-between items-center relative">
+
+                <button class="flex flex-col items-center justify-center w-12 text-primary group">
+                    <div class="p-1.5 rounded-xl bg-orange-100 mb-1">
+                        <i class="ph-fill ph-house text-2xl"></i>
+                    </div>
+                    <span class="text-[10px] font-bold">Inicio</span>
+                </button>
+
+                <button
+                    class="flex flex-col items-center justify-center w-12 text-textmuted hover:text-primary transition-colors pr-8">
+                    <i class="ph ph-list-dashes text-2xl mb-1"></i>
+                    <span class="text-[10px] font-semibold">Tickets</span>
+                </button>
+
+                <!-- Floating Action Button Mock (Absolute Center) -->
+                <div class="absolute left-1/2 -top-10 transform -translate-x-1/2">
+                    <button
+                        class="w-16 h-16 rounded-full bg-gradient-to-b from-primary to-primary_hover text-white shadow-xl shadow-primary/40 flex items-center justify-center border-4 border-white active:scale-95 transition-transform hover:-translate-y-1">
+                        <i class="ph-bold ph-scan text-3xl"></i>
+                    </button>
+                </div>
+
+                <button
+                    class="flex flex-col items-center justify-center w-12 text-textmuted hover:text-primary transition-colors pl-8">
+                    <i class="ph ph-bell text-2xl mb-1"></i>
+                    <span class="text-[10px] font-semibold">Alertas</span>
+                </button>
+
+                <button
+                    class="flex flex-col items-center justify-center w-12 text-textmuted hover:text-primary transition-colors">
+                    <i class="ph ph-user text-2xl mb-1"></i>
+                    <span class="text-[10px] font-semibold">Perfil</span>
+                </button>
+
+            </div>
+        </nav>
+
+        <!-- Home bar indicator mock -->
+        <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-stone-900 rounded-full z-[60]">
+        </div>
+
+    </div>
+
+</body>
+
+</html>
