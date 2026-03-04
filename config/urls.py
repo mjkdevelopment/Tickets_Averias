@@ -16,6 +16,8 @@ urlpatterns = [
     path('locales/', include('apps.locales.urls')),
     path('reportes/', include('apps.reportes.urls')),
     path("api/register-device/", api_fcm.registrar_dispositivo, name="api_register_device"),
+    path("api/device/enroll/", api_fcm.inscribir_dispositivo, name="api_device_enroll"),
+    path("api/device/status/", api_fcm.estado_dispositivo, name="api_device_status"),
 
 
     # URLs de autenticación

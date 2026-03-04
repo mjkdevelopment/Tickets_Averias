@@ -131,9 +131,11 @@ class DispositivoNotificacionAdmin(ModelAdmin):
         url = reverse('admin:usuarios_usuario_change', args=[obj.usuario.pk])
         return format_html('<a href="{}">{}</a>', url, obj.usuario.username)
     
-    @display(description='Activo', boolean=True, ordering='activo')
+    @display(description='Estado', ordering='activo')
     def activo_display(self, obj):
-        return obj.activo
+        if obj.activo:
+            return format_html('<span style="background:#28a745; padding:3px 10px; border-radius:4px; color:white; font-size:11px; font-weight:bold;">Aprobado</span>')
+        return format_html('<span style="background:#ffc107; padding:3px 10px; border-radius:4px; color:#212529; font-size:11px; font-weight:bold;">Pendiente</span>')
     
     @display(description='Registrado', ordering='fecha_registro')
     def fecha_registro_display(self, obj):
