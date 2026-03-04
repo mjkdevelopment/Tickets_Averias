@@ -20,6 +20,22 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
+/// Callback cuando se toca una notificación local (foreground)
+void _onDidReceiveNotificationResponse(NotificationResponse response) {
+  final payload = response.payload;
+  if (payload != null && payload.isNotEmpty) {
+    debugPrint('🔔 [LOCAL TAP] Payload: $payload');
+    final ctx = navigatorKey.currentContext;
+    if (ctx != null) {
+      Navigator.of(ctx).push(
+        MaterialPageRoute(
+          builder: (_) => WebViewScreen(initialUrl: payload),
+        ),
+      );
+    }
+  }
+}
+
 Future<void> _initLocalNotifications() async {
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -27,7 +43,10 @@ Future<void> _initLocalNotifications() async {
     android: androidSettings,
   );
 
-  await flutterLocalNotificationsPlugin.initialize(initSettings);
+  await flutterLocalNotificationsPlugin.initialize(
+    initSettings,
+    onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
+  );
 }
 
 Future<void> _showForegroundNotification(RemoteMessage message) async {
@@ -41,11 +60,15 @@ Future<void> _showForegroundNotification(RemoteMessage message) async {
 
   const notificationDetails = NotificationDetails(android: androidDetails);
 
+  // Pasar ticket_url como payload para que al tocar abra el ticket
+  final ticketUrl = message.data['ticket_url'] ?? '';
+
   await flutterLocalNotificationsPlugin.show(
     message.hashCode,
     message.notification?.title ?? 'Nuevo ticket',
     message.notification?.body ?? 'Se ha creado un nuevo ticket',
     notificationDetails,
+    payload: ticketUrl,
   );
 }
 
