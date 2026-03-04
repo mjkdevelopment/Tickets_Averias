@@ -202,7 +202,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _checkForUpdate() async {
     try {
       final response = await http.get(Uri.parse(kVersionApiUrl)).timeout(
-        const Duration(seconds: 5),
+        const Duration(seconds: 15),
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
