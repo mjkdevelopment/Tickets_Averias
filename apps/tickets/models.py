@@ -382,6 +382,7 @@ class Notificacion(models.Model):
         ('MENCION', 'Mención en comentario'),
         ('ASIGNACION', 'Ticket asignado'),
         ('ESTADO', 'Cambio de estado'),
+        ('SLA_VENCIDO', 'SLA Vencido'),
     ]
 
     usuario = models.ForeignKey(

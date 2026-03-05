@@ -68,3 +68,81 @@ def registrar_dispositivo(request):
             "creado": creado,
         }
     )
+
+@csrf_exempt
+def inscribir_dispositivo(request):
+    """
+    Registra o actualiza el token FCM de un dispositivo.
+    Requiere autenticación de sesión.
+    """
+    if request.method != "POST":
+        return JsonResponse({"detail": "Método no permitido", "status": "error"}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"detail": "Usuario no autenticado", "status": "error"}, status=401)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = request.POST
+
+    fcm_token = data.get("fcm_token")
+    if not fcm_token:
+        return JsonResponse({"detail": "fcm_token es requerido", "status": "error"}, status=400)
+
+    # Eliminar este token de otros usuarios si existe
+    DispositivoNotificacion.objects.filter(fcm_token=fcm_token).exclude(usuario=request.user).delete()
+
+    dispositivo, creado = DispositivoNotificacion.objects.update_or_create(
+        usuario=request.user,
+        defaults={
+            "fcm_token": fcm_token,
+            "activo": True
+        }
+    )
+
+    return JsonResponse({
+        "status": "success",
+        "detail": "Dispositivo inscrito correctamente",
+        "creado": creado
+    })
+
+
+@csrf_exempt
+def estado_dispositivo(request):
+    """
+    Verifica el estado de un dispositivo (activo/inactivo)
+    basado en el token FCM.
+    """
+    if request.method != "POST" and request.method != "GET":
+        return JsonResponse({"detail": "Método no permitido"}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"detail": "No autenticado"}, status=401)
+
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            data = request.POST
+        fcm_token = data.get("fcm_token")
+    else:
+        fcm_token = request.GET.get("fcm_token")
+
+    if not fcm_token:
+        return JsonResponse({"detail": "fcm_token es requerido", "status": "error"}, status=400)
+
+    try:
+        dispositivo = DispositivoNotificacion.objects.get(
+            usuario=request.user, 
+            fcm_token=fcm_token
+        )
+        return JsonResponse({
+            "status": "success",
+            "activo": dispositivo.activo
+        })
+    except DispositivoNotificacion.DoesNotExist:
+        return JsonResponse({
+            "status": "error",
+            "detail": "Dispositivo no encontrado"
+        }, status=404)

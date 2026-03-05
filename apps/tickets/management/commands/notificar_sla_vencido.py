@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from apps.tickets.models import Ticket
+from apps.tickets.models import Ticket, Notificacion
 from apps.tickets.fcm import enviar_notificacion_sla_vencido
+from apps.usuarios.models import Usuario
 
 
 class Command(BaseCommand):
@@ -35,16 +36,33 @@ class Command(BaseCommand):
         self.stdout.write(f"Tickets a notificar: {total}")
 
         enviados = 0
+        admin_users = list(Usuario.objects.filter(is_staff=True, activo=True))
+
         for ticket in qs:
             if dry_run:
                 self.stdout.write(f"[DRY] {ticket.numero_ticket} - {ticket.local}")
                 continue
 
+            # Primero creamos la notificación web en la BD para cada admin
+            for admin in admin_users:
+                Notificacion.objects.create(
+                    usuario=admin,
+                    ticket=ticket,
+                    tipo='SLA_VENCIDO',
+                    mensaje=f'SLA Vencido: {ticket.numero_ticket} ({ticket.local})',
+                    # autor=None porque es el sistema
+                )
+
+            # Luego enviamos push FCM a los dispositivos
             if enviar_notificacion_sla_vencido(ticket):
+                Ticket.objects.filter(pk=ticket.pk).update(notificacion_sla_enviada=True)
+                enviados += 1
+            else:
+                # Incluso si falló FCM, marcamos como enviada porque ya creamos las notifs web
                 Ticket.objects.filter(pk=ticket.pk).update(notificacion_sla_enviada=True)
                 enviados += 1
 
         if dry_run:
             self.stdout.write(self.style.WARNING("Dry run completado. No se enviaron notificaciones."))
         else:
-            self.stdout.write(self.style.SUCCESS(f"Notificaciones enviadas para {enviados} ticket(s)."))
+            self.stdout.write(self.style.SUCCESS(f"Notificaciones procesadas para {enviados} ticket(s) vencido(s)."))
