@@ -555,11 +555,11 @@
 
                 list.innerHTML = items.map(n => {
                     let iconHtml = '';
-                    let b
+                    let bgClass = '';
                     if (n.tipo === 'SLA_VENCIDO') {
-                              no rojo para  A
+                        // Ícono rojo para SLA
                         bgClass = 'bg-red-500/10 text-red-500';
-                        tml = '<i class="ph-fill ph-clock text-sm"></i>';
+                        iconHtml = '<i class="ph-fill ph-clock text-sm"></i>';
                     } else {
                         // Ícono naranja por defecto para menciones
                         bgClass = 'bg-primary/10 text-primary';
@@ -567,71 +567,81 @@
                     }
 
                     return `
-                <a href="/tickets/${n.ticket_id}/" onclick="marcarTicketLeido(${n.ticket_id})" class="block px-4 py-3 hover:bg-orange-50/50 transition-colors">
+                <a href="/tickets/${n.ticket_id}/" onclick="marcarTicketLeido(${n.ticket_id})" class="block px-4 py-3 hover:bg-orange-50/50 transition-colors border-b border-stone-100 last:border-0">
                     <div class="flex gap-3 items-start">
-                        <div class="w-8 h-8 rounded-full ${bgClass} flex items-center justify-center shrink-0 mt-0.5">
+                        <div class="w-8 h-8 rounded-full ${bgClass} flex items-center justify-center shrink-0 mt-0.5 shadow-sm border border-stone-100">
                             ${iconHtml}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-            semi         te        extmain leading-snug line-clamp-2">${n}</p>
-                                <p class="text-[10px] text-textmuted mt-1"                numero} · ${n.fecha}</                               </div>
-                           iv>
+                            <p class="text-xs font-semibold text-textmain leading-snug line-clamp-2">${n.mensaje}</p>
+                            <p class="text-[10px] text-textmuted mt-1 font-medium">#${n.numero} · ${n.fecha}</p>
+                        </div>
+                    </div>
                 </a>
                     `;
                 }).join('');
+            });
+        }
+
+        async function pollNotificaciones() {
+            try {
+                const resp = await fetch('/tickets/api/notificaciones/');
+                if (!resp.ok) return;
+                const data = await resp.json();
+
+                updateBadges(data.count);
+                renderNotifList(data.items);
+
+                // Sonar SOLO si hay nuevas notificaciones desde el último poll conocido
+                // lastNotifCount === -1 en el primer poll (evita sonar al cargar la pagina)
+                if (lastNotifCount >= 0 && data.count > lastNotifCount) {
+                    playNotifSound();
+                }
+
+                lastNotifCount = data.count; // actualizar el contador con el nuevo valor
+
+            } catch (e) {
+                console.error("Error polling notifications:", e);
             }
+        }
 
-    async function pollNotificaciones() {
-                    try {
-                        p = await fetch('/tickets/api/notificaciones/');
-                        if (!resp.ok) return;
-                        ta = await resp.json();
+        async function marcarTodasLeidas() {
+            try {
+                await fetch('/tickets/api/notificaciones/leer/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                });
+                updateBadges(0);
+                lastNotifCount = 0;
+                renderNotifList([]);
+            } catch (e) { /* silent */ }
+        }
 
-                        updateBadges(data.co                      renderNotifList(
+        async function marcarTicketLeido(ticketId) {
+            try {
+                await fetch(`/tickets/api/notificaciones/leer/${ticketId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                });
+            } catch (e) { /* silent */ }
+        }
 
-                            // Sonar SOLO si hay nuevas notificaciones desde el último poll conocido
-                            otifCount === -1 en el primer poll            ena(ev ita duplicar sonido p        And)
-            if (lastNotifCount >= 0            .count                Count) {
-                playNotifSound();
-                if (lastNotifC                    tNotifCount = data.count; // establecer líne                                    NotifCount = data                    } catch(e) { /*                     }
+        // Auto-marcar leídas si estamos en la página de detalle del ticket
+        (function () {
+            const m = window.location.pathname.match(/^\/tickets\/(\d+)\//);
+            if (m) {
+                marcarTicketLeido(parseInt(m[1]));
+            }
+        })();
 
-                async function marcarTodasLeidas() {
-                    try {
-                        await fetch('/tickets/api/notificaciones/leer/', {
-                            method: 'POST',
-                            headers: { 'X-CSRFToken': getCsrfToken() },
-                        });
-                        updateBadges(0);
-                        lastNotifCount = 0;
-                        renderNotifList([]);
-                    } catch (e) { /* silent */ }
-                }
+        function getCsrfToken() {
+            const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+            return cookie ? cookie.split('=')[1] : '';
+        }
 
-                async function marcarTicketLeido(ticketId) {
-                    try {
-                        await fetch(`/tickets/api/notificaciones/leer/${ticketId}/`, {
-                            method: 'POST',
-                            headers: { 'X-CSRFToken': getCsrfToken() },
-                        });
-                    } catch (e) { /* silent */ }
-                }
-
-                // Auto-marcar leídas si estamos en la página de detalle del ticket
-                (function () {
-                    const m = window.location.pathname.match(/^\/tickets\/(\d+)\//);
-                    if (m) {
-                        marcarTicketLeido(parseInt(m[1]));
-                    }
-                })();
-
-                function getCsrfToken() {
-                    const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-                    return cookie ? cookie.split('=')[1] : '';
-                }
-
-                // Iniciar polling
-                pollNotificaciones();
-                setInterval(pollNotificaciones, NOTIF_POLL_MS);
+        // Iniciar polling
+        pollNotificaciones();
+        setInterval(pollNotificaciones, NOTIF_POLL_MS);
     </script>
     {% endif %}
 </body>
