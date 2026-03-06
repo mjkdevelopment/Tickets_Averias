@@ -73,28 +73,32 @@ def registrar_dispositivo(request):
 def inscribir_dispositivo(request):
     """
     Registra o actualiza el token FCM de un dispositivo.
-    Requiere autenticación de sesión.
+    Llamado desde la app móvil Flutter (OnboardingWizard).
     """
     if request.method != "POST":
         return JsonResponse({"detail": "Método no permitido", "status": "error"}, status=405)
-
-    if not request.user.is_authenticated:
-        return JsonResponse({"detail": "Usuario no autenticado", "status": "error"}, status=401)
 
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
         data = request.POST
 
+    username = (data.get("username") or data.get("usuario") or "").strip()
     fcm_token = data.get("fcm_token")
-    if not fcm_token:
-        return JsonResponse({"detail": "fcm_token es requerido", "status": "error"}, status=400)
+
+    if not username or not fcm_token:
+        return JsonResponse({"detail": "username y fcm_token son requeridos", "status": "error"}, status=400)
+
+    try:
+        usuario = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return JsonResponse({"detail": "El usuario no existe o hubo un problema", "status": "error"}, status=401)
 
     # Eliminar este token de otros usuarios si existe
-    DispositivoNotificacion.objects.filter(fcm_token=fcm_token).exclude(usuario=request.user).delete()
+    DispositivoNotificacion.objects.filter(fcm_token=fcm_token).exclude(usuario=usuario).delete()
 
     dispositivo, creado = DispositivoNotificacion.objects.update_or_create(
-        usuario=request.user,
+        usuario=usuario,
         defaults={
             "fcm_token": fcm_token,
             "activo": True
@@ -104,21 +108,19 @@ def inscribir_dispositivo(request):
     return JsonResponse({
         "status": "success",
         "detail": "Dispositivo inscrito correctamente",
-        "creado": creado
+        "creado": creado,
+        "aprobado": dispositivo.activo
     })
 
 
 @csrf_exempt
 def estado_dispositivo(request):
     """
-    Verifica el estado de un dispositivo (activo/inactivo)
-    basado en el token FCM.
+    Verifica el estado de un dispositivo (activo/inactivo/aprobado)
+    basado en el token FCM. Llamado desde Flutter (WaitingRoomScreen).
     """
     if request.method != "POST" and request.method != "GET":
         return JsonResponse({"detail": "Método no permitido"}, status=405)
-
-    if not request.user.is_authenticated:
-        return JsonResponse({"detail": "No autenticado"}, status=401)
 
     if request.method == "POST":
         try:
@@ -133,13 +135,11 @@ def estado_dispositivo(request):
         return JsonResponse({"detail": "fcm_token es requerido", "status": "error"}, status=400)
 
     try:
-        dispositivo = DispositivoNotificacion.objects.get(
-            usuario=request.user, 
-            fcm_token=fcm_token
-        )
+        dispositivo = DispositivoNotificacion.objects.get(fcm_token=fcm_token)
         return JsonResponse({
             "status": "success",
-            "activo": dispositivo.activo
+            "activo": dispositivo.activo,
+            "aprobado": dispositivo.activo
         })
     except DispositivoNotificacion.DoesNotExist:
         return JsonResponse({
