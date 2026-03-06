@@ -100,17 +100,24 @@ def inscribir_dispositivo(request):
     # Eliminar este token de otros usuarios si existe
     DispositivoNotificacion.objects.filter(fcm_token=fcm_token).exclude(usuario=usuario).delete()
 
-    dispositivo, creado = DispositivoNotificacion.objects.update_or_create(
-        usuario=usuario,
-        defaults={
-            "fcm_token": fcm_token,
-            "activo": True
-        }
-    )
+    # Intentamos buscar el dispositivo existente
+    dispositivo = DispositivoNotificacion.objects.filter(usuario=usuario, fcm_token=fcm_token).first()
+    
+    if dispositivo:
+        # Si ya existe, no tocamos su estado 'activo' para no revocar/aprobar sin querer
+        creado = False
+    else:
+        # Si es nuevo, se crea como inactivo (esperando aprobación)
+        dispositivo = DispositivoNotificacion.objects.create(
+            usuario=usuario,
+            fcm_token=fcm_token,
+            activo=False
+        )
+        creado = True
 
     return JsonResponse({
         "status": "success",
-        "detail": "Dispositivo inscrito correctamente",
+        "detail": "Dispositivo inscrito correctamente. Esperando validación.",
         "creado": creado,
         "aprobado": dispositivo.activo
     })
