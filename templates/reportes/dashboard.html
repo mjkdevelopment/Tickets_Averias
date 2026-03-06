@@ -2,176 +2,238 @@
 {% block title %}Reportes{% endblock %}
 
 {% block content %}
-<h2 class="mb-1">Reportes</h2>
-<p class="text-muted mb-4">
-    Ventana de análisis: <strong>{{ desde|date:"d/m/Y" }}</strong> → <strong>{{ hoy|date:"d/m/Y" }}</strong>
-</p>
-
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="text-muted small">Tickets abiertos (ahora)</div>
-                <div class="fs-3 fw-bold">{{ abiertos_total }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm border-danger">
-            <div class="card-body">
-                <div class="text-muted small">Abiertos vencidos (SLA)</div>
-                <div class="fs-3 fw-bold text-danger">{{ abiertos_vencidos }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="text-muted small">Prom. solución (3 meses)</div>
-                <div class="fs-4 fw-bold">{{ avg_solucion_global }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="text-muted small">Cumplimiento SLA (3 meses)</div>
-                <div class="fs-4 fw-bold">{{ pct_on_time }}%</div>
-                <div class="text-muted small">({{ total_cerrados }} tickets)</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- SLA por banca -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
+<div class="animate-fade-in-up opacity-0 stagger-1">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-            <strong>SLA por banca</strong>
-            <span class="text-muted small">(últimos 3 meses)</span>
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-textmain">Reportes</h1>
+            <p class="text-textmuted font-medium mt-1">
+                Ventana de análisis: <strong>{{ desde|date:"d/m/Y" }}</strong> → <strong>{{ hoy|date:"d/m/Y" }}</strong>
+            </p>
         </div>
     </div>
-    <div class="card-body">
-        {% if sla_por_local %}
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
+
+    <!-- Indicadores Principales -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div
+            class="glass neon-snake rounded-xl p-5 shadow-sm active:scale-[0.98] transition-transform hover:shadow-lg relative overflow-hidden flex flex-col justify-center">
+            <div class="absolute -right-4 -top-4 text-stone-200">
+                <i class="ph-fill ph-ticket text-6xl opacity-50"></i>
+            </div>
+            <div class="text-xs font-bold text-textmuted uppercase tracking-wider mb-2">Tickets abiertos</div>
+            <div class="text-3xl font-black text-textmain">{{ abiertos_total }}</div>
+        </div>
+
+        <div
+            class="glass neon-snake rounded-xl p-5 shadow-sm active:scale-[0.98] transition-transform hover:shadow-lg relative overflow-hidden flex flex-col justify-center border border-red-200 bg-red-50/10">
+            <div class="absolute -right-4 -top-4 text-red-100">
+                <i class="ph-fill ph-warning-circle text-6xl opacity-50"></i>
+            </div>
+            <div class="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Abiertos vencidos</div>
+            <div class="text-3xl font-black text-red-600">{{ abiertos_vencidos }}</div>
+        </div>
+
+        <div
+            class="glass neon-snake rounded-xl p-5 shadow-sm active:scale-[0.98] transition-transform hover:shadow-lg relative overflow-hidden flex flex-col justify-center">
+            <div class="absolute -right-4 -top-4 text-stone-200">
+                <i class="ph-fill ph-clock text-6xl opacity-50"></i>
+            </div>
+            <div class="text-xs font-bold text-textmuted uppercase tracking-wider mb-2">Prom. solución</div>
+            <div class="text-2xl font-black text-textmain">{{ avg_solucion_global }}</div>
+        </div>
+
+        <div
+            class="glass neon-snake rounded-xl p-5 shadow-sm active:scale-[0.98] transition-transform hover:shadow-lg relative overflow-hidden flex flex-col justify-center">
+            <div class="absolute -right-4 -top-4 text-stone-200">
+                <i class="ph-fill ph-percent text-6xl opacity-50"></i>
+            </div>
+            <div class="text-xs font-bold text-textmuted uppercase tracking-wider mb-2">Cumplimiento SLA</div>
+            <div class="flex items-baseline gap-2">
+                <div class="text-3xl font-black text-textmain">{{ pct_on_time }}%</div>
+                <div class="text-sm font-medium text-stone-400">({{ total_cerrados }})</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="animate-fade-in-up opacity-0 stagger-2 mb-6">
+    <!-- SLA por banca -->
+    <div class="glass neon-snake rounded-xl shadow-sm border border-stone-100 overflow-hidden">
+        <div class="bg-stone-50/50 px-5 py-4 border-b border-stone-100 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-bold text-textmain flex items-center">
+                    <i class="ph-bold ph-storefront text-primary mr-2"></i> SLA por banca
+                </h3>
+                <p class="text-xs text-textmuted font-medium mt-0.5">Últimos 3 meses</p>
+            </div>
+        </div>
+
+        <div class="p-0">
+            {% if sla_por_local %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-stone-100/50 text-textmuted font-bold text-xs uppercase tracking-wider">
                         <tr>
-                            <th>Banca</th>
-                            <th class="text-end">Cerrados</th>
-                            <th class="text-end">Cumplen SLA</th>
-                            <th class="text-end">% SLA</th>
-                            <th class="text-end">Prom. respuesta</th>
-                            <th class="text-end">Prom. solución</th>
-                            <th class="text-end">Abiertos</th>
-                            <th class="text-end">Abiertos vencidos</th>
+                            <th class="px-5 py-3">Banca</th>
+                            <th class="px-5 py-3 text-right">Cerrados</th>
+                            <th class="px-5 py-3 text-right">Cumplen SLA</th>
+                            <th class="px-5 py-3 text-right">% SLA</th>
+                            <th class="px-5 py-3 text-right">Prom. respuesta</th>
+                            <th class="px-5 py-3 text-right">Prom. solución</th>
+                            <th class="px-5 py-3 text-right">Abiertos</th>
+                            <th class="px-5 py-3 text-right">Abiertos vencidos</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-stone-100 text-textmain font-medium">
                         {% for r in sla_por_local %}
-                            <tr>
-                                <td>
-                                    <div class="fw-semibold">{{ r.codigo }}</div>
-                                    <div class="text-muted small">{{ r.nombre }}</div>
-                                </td>
-                                <td class="text-end">{{ r.total }}</td>
-                                <td class="text-end">{{ r.on_time }}</td>
-                                <td class="text-end">
-                                    <span class="badge {% if r.pct_on_time >= 90 %}bg-success{% elif r.pct_on_time >= 75 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
-                                        {{ r.pct_on_time }}%
-                                    </span>
-                                </td>
-                                <td class="text-end">{{ r.avg_respuesta }}</td>
-                                <td class="text-end">{{ r.avg_solucion }}</td>
-                                <td class="text-end">{{ r.abiertos }}</td>
-                                <td class="text-end">
-                                    {% if r.abiertos_vencidos %}
-                                        <span class="badge bg-danger">{{ r.abiertos_vencidos }}</span>
-                                    {% else %}
-                                        <span class="text-muted">0</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
+                        <tr class="hover:bg-stone-50/50 transition-colors">
+                            <td class="px-5 py-4">
+                                <span
+                                    class="bg-stone-100 text-stone-600 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-stone-200 inline-flex items-center mb-1">
+                                    {{ r.codigo }}
+                                </span>
+                                <div class="text-textmuted text-xs font-medium">{{ r.nombre }}</div>
+                            </td>
+                            <td class="px-5 py-4 text-right">{{ r.total }}</td>
+                            <td class="px-5 py-4 text-right">{{ r.on_time }}</td>
+                            <td class="px-5 py-4 text-right">
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-sm
+                                    {% if r.pct_on_time >= 90 %}bg-green-500
+                                    {% elif r.pct_on_time >= 75 %}bg-amber-500
+                                    {% else %}bg-red-500{% endif %}">
+                                    {{ r.pct_on_time }}%
+                                </span>
+                            </td>
+                            <td class="px-5 py-4 text-right text-stone-500">{{ r.avg_respuesta }}</td>
+                            <td class="px-5 py-4 text-right text-stone-500">{{ r.avg_solucion }}</td>
+                            <td class="px-5 py-4 text-right">{{ r.abiertos }}</td>
+                            <td class="px-5 py-4 text-right">
+                                {% if r.abiertos_vencidos %}
+                                <span
+                                    class="text-xs font-bold text-red-600 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full inline-flex items-center badge-pulse">
+                                    {{ r.abiertos_vencidos }}
+                                </span>
+                                {% else %}
+                                <span class="text-stone-400">0</span>
+                                {% endif %}
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        {% else %}
-            <p class="text-muted mb-0">No hay datos de cierre en el período.</p>
-        {% endif %}
+            {% else %}
+            <div class="p-8 text-center text-textmuted font-medium">
+                No hay datos de SLA en este período.
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
-<!-- Reincidencias -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header">
-        <strong>Reincidencias</strong>
-        <span class="text-muted small">(mismo problema por banca, últimos 3 meses)</span>
-    </div>
-    <div class="card-body">
-        {% if reincidencias %}
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up opacity-0 stagger-3">
+    <!-- Reincidencias -->
+    <div class="glass neon-snake rounded-xl shadow-sm border border-stone-100 overflow-hidden h-full">
+        <div class="bg-stone-50/50 px-5 py-4 border-b border-stone-100 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-bold text-textmain flex items-center">
+                    <i class="ph-bold ph-strategy text-primary mr-2"></i> Reincidencias
+                </h3>
+            </div>
+        </div>
+        <div class="p-0">
+            {% if reincidencias %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-stone-100/50 text-textmuted font-bold text-xs uppercase tracking-wider">
                         <tr>
-                            <th>Banca</th>
-                            <th>Categoría</th>
-                            <th class="text-end">Tickets</th>
+                            <th class="px-5 py-3">Banca</th>
+                            <th class="px-5 py-3">Categoría</th>
+                            <th class="px-5 py-3 text-right">Tickets</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-stone-100 text-textmain font-medium">
                         {% for r in reincidencias %}
-                            <tr>
-                                <td>
-                                    <div class="fw-semibold">{{ r.local__codigo }}</div>
-                                    <div class="text-muted small">{{ r.local__nombre }}</div>
-                                </td>
-                                <td>{{ r.categoria__nombre }}</td>
-                                <td class="text-end">
-                                    <span class="badge bg-secondary">{{ r.total }}</span>
-                                </td>
-                            </tr>
+                        <tr class="hover:bg-stone-50/50 transition-colors">
+                            <td class="px-5 py-4">
+                                <span
+                                    class="bg-stone-100 text-stone-600 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-stone-200 inline-flex items-center mb-1">
+                                    {{ r.local__codigo }}
+                                </span>
+                                <div class="text-textmuted text-xs font-medium">{{ r.local__nombre }}</div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="text-xs font-semibold text-textmuted flex items-center">
+                                    <i class="ph-fill ph-tag mr-1.5 text-stone-400"></i>
+                                    {{ r.categoria__nombre }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-4 text-right">
+                                <span class="text-xs font-bold text-stone-700 bg-stone-200 px-2 py-1 rounded-md">{{
+                                    r.total }}</span>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        {% else %}
-            <p class="text-muted mb-0">No hay reincidencias (>=2) en el período.</p>
-        {% endif %}
+            {% else %}
+            <div class="p-8 text-center text-textmuted font-medium">
+                No hay reincidencias (&ge;2) en este período.
+            </div>
+            {% endif %}
+        </div>
     </div>
-</div>
 
-<!-- Top técnicos -->
-<div class="card shadow-sm">
-    <div class="card-header">
-        <strong>Técnicos con más tickets cerrados</strong>
-    </div>
-    <div class="card-body">
-        {% if tecnicos_top %}
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead>
+    <!-- Top técnicos -->
+    <div class="glass neon-snake rounded-xl shadow-sm border border-stone-100 overflow-hidden h-full">
+        <div class="bg-stone-50/50 px-5 py-4 border-b border-stone-100 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-bold text-textmain flex items-center">
+                    <i class="ph-bold ph-medal text-primary mr-2"></i> Top Técnicos
+                </h3>
+            </div>
+        </div>
+        <div class="p-0">
+            {% if tecnicos_top %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-stone-100/50 text-textmuted font-bold text-xs uppercase tracking-wider">
                         <tr>
-                            <th>Técnico</th>
-                            <th class="text-end">Cerrados</th>
+                            <th class="px-5 py-3">Técnico</th>
+                            <th class="px-5 py-3 text-right">Cerrados</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-stone-100 text-textmain font-medium">
                         {% for t in tecnicos_top %}
-                            <tr>
-                                <td>
-                                    {{ t.asignado_a__first_name }} {{ t.asignado_a__last_name }}
-                                    <span class="text-muted small">({{ t.asignado_a__username }})</span>
-                                </td>
-                                <td class="text-end">{{ t.total_cerrados }}</td>
-                            </tr>
+                        <tr class="hover:bg-stone-50/50 transition-colors">
+                            <td class="px-5 py-4 flex items-center">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-orange-100 text-primary flex items-center justify-center font-bold mr-3 border border-orange-200">
+                                    {{ t.asignado_a__first_name|first|default:t.asignado_a__username|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-sm">{{ t.asignado_a__first_name }} {{
+                                        t.asignado_a__last_name }}</div>
+                                    <div class="text-[10px] text-textmuted font-medium uppercase tracking-wide">{{
+                                        t.asignado_a__username }}</div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 text-right">
+                                <span
+                                    class="bg-stone-100 text-stone-700 px-3 py-1 rounded-full text-sm font-bold shadow-sm">{{
+                                    t.total_cerrados }}</span>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        {% else %}
-            <p class="text-muted mb-0">Ningún técnico ha cerrado tickets todavía.</p>
-        {% endif %}
+            {% else %}
+            <div class="p-8 text-center text-textmuted font-medium">
+                Ningún técnico ha cerrado tickets todavía.
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
