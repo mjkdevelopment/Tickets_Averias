@@ -90,9 +90,12 @@ def inscribir_dispositivo(request):
         return JsonResponse({"detail": "username y fcm_token son requeridos", "status": "error"}, status=400)
 
     try:
-        usuario = User.objects.get(username=username)
+        # Case insensitive lookup
+        usuario = User.objects.get(username__iexact=username)
     except User.DoesNotExist:
-        return JsonResponse({"detail": "El usuario no existe o hubo un problema", "status": "error"}, status=401)
+        return JsonResponse({"detail": f"El usuario {username} no existe.", "status": "error"}, status=401)
+    except User.MultipleObjectsReturned:
+        usuario = User.objects.filter(username__iexact=username).first()
 
     # Eliminar este token de otros usuarios si existe
     DispositivoNotificacion.objects.filter(fcm_token=fcm_token).exclude(usuario=usuario).delete()
